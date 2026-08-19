@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e0f14">
+<title>Goals</title>
+<style>
+:root {
+  --bg: #0e0f14;
+  --card: #171922;
+  --card-2: #1e212c;
+  --line: #2a2e3d;
+  --text: #e8eaf0;
+  --dim: #949aab;
+  --accent: #6ee7a8;
+  --warn: #f2b25c;
+  --danger: #e8746b;
+  --radius: 14px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 20px 16px 64px;
+}
+.wrap { max-width: 640px; margin: 0 auto; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+h1 { font-size: 26px; margin: 0; letter-spacing: -0.02em; }
+.tally { color: var(--dim); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+form.add {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 22px;
+  display: grid;
+  gap: 10px;
+}
+.types { display: flex; gap: 8px; }
+.types label {
+  flex: 1; text-align: center; padding: 10px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--card-2);
+  color: var(--dim); cursor: pointer; font-size: 14px; user-select: none;
+}
+.types input { position: absolute; opacity: 0; pointer-events: none; }
+.types label:has(input:checked) { background: var(--accent); border-color: var(--accent); color: #0b1a12; font-weight: 600; }
+.types label:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; gap: 10px; }
+.row > * { flex: 1; min-width: 0; }
+input[type=text], input[type=number], input[type=date] {
+  width: 100%; padding: 12px; border-radius: 10px; font-size: 16px;
+  background: var(--card-2); border: 1px solid var(--line); color: var(--text);
+  font-family: inherit;
+}
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input::placeholder { color: #666d80; }
+input[type=date] { color-scheme: dark; }
+button {
+  font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--card-2); color: var(--text); padding: 12px;
+}
+button.primary { background: var(--accent); border-color: var(--accent); color: #0b1a12; font-weight: 600; }
+button:hover { filter: brightness(1.12); }
+
+ul.goals { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+li.goal {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 14px;
+}
+li.goal.done { opacity: 0.55; }
+.top { display: flex; align-items: flex-start; gap: 6px; }
+.title { font-weight: 600; font-size: 17px; flex: 1; word-break: break-word; }
+li.goal.done .title { text-decoration: line-through; }
+.icon-btn {
+  border: none; background: none; color: var(--dim); padding: 8px 10px; font-size: 15px; line-height: 1.2;
+}
+.icon-btn:hover { color: var(--text); }
+.icon-btn.del:hover { color: var(--danger); }
+.meta { color: var(--dim); font-size: 13.5px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.meta .late { color: var(--danger); }
+.meta .soon { color: var(--warn); }
+.meta .ahead { color: var(--accent); }
+progress {
+  width: 100%; height: 9px; margin-top: 10px; appearance: none; -webkit-appearance: none; border: none;
+  border-radius: 99px; overflow: hidden; background: var(--card-2); display: block;
+}
+progress::-webkit-progress-bar { background: var(--card-2); }
+progress::-webkit-progress-value { background: var(--accent); border-radius: 99px; }
+progress::-moz-progress-bar { background: var(--accent); border-radius: 99px; }
+.amounts { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; margin-top: 7px; font-variant-numeric: tabular-nums; }
+.amounts b { font-weight: 600; }
+.amounts .togo { color: var(--dim); }
+form.contrib { display: flex; gap: 8px; margin-top: 11px; }
+form.contrib input { flex: 1; padding: 9px 12px; }
+form.contrib button { padding: 9px 14px; white-space: nowrap; }
+label.check { display: flex; align-items: center; gap: 10px; margin-top: 10px; color: var(--dim); font-size: 14px; cursor: pointer; }
+label.check input { width: 20px; height: 20px; accent-color: var(--accent); }
+.empty { color: var(--dim); text-align: center; padding: 40px 10px; font-size: 15px; }
+footer { margin-top: 30px; display: flex; gap: 10px; justify-content: center; }
+footer button { font-size: 13.5px; padding: 9px 14px; color: var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Goals</h1>
+    <span class="tally" id="tally"></span>
+  </header>
+
+  <form class="add" id="add-form">
+    <div class="types">
+      <label><input type="radio" name="type" value="money" checked><span>Money</span></label>
+      <label><input type="radio" name="type" value="milestone"><span>Milestone</span></label>
+    </div>
+    <input type="text" name="title" placeholder="What's the goal? e.g. Road bike" required maxlength="120">
+    <div class="row">
+      <input type="number" name="target" placeholder="Target $" min="0.01" step="0.01" required id="target-input">
+      <input type="date" name="deadline" aria-label="Target date (optional)">
+    </div>
+    <button type="submit" class="primary">Add goal</button>
+  </form>
+
+  <ul class="goals" id="list"></ul>
+  <p class="empty" id="empty" hidden>Nothing tracked yet. Add your first goal above.</p>
+
+  <footer>
+    <button type="button" id="export">Export backup</button>
+    <button type="button" id="import">Import backup</button>
+    <input type="file" id="file" accept="application/json,.json" hidden>
+  </footer>
+
+</div>
+
+<script>
+const KEY = 'goals.v1';
+const $ = (s) => document.querySelector(s);
+
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
+const save = (g) => localStorage.setItem(KEY, JSON.stringify(g));
+
+let goals = load();
+
+const today = () => new Date().toISOString().slice(0, 10);
+const days = (from, to) => Math.round((new Date(to) - new Date(from)) / 86400000);
+const money = (n) => '$' + n.toLocaleString('en-CA', n % 1
+  ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+  : { maximumFractionDigits: 0 });
+const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Weekly contribution needed to hit the target by the deadline.
+// null when there is nothing left to save or the deadline has passed.
+function perWeek(target, current, daysLeft) {
+  const remaining = target - current;
+  if (remaining <= 0 || daysLeft <= 0) return null;
+  return remaining / (daysLeft / 7);
+}
+
+// True when progress is at least as far along as elapsed time.
+function onPace(g, now) {
+  if (!g.deadline) return null;
+  const span = days(g.createdAt, g.deadline);
+  if (span <= 0) return null;
+  const elapsed = Math.min(Math.max(days(g.createdAt, now || today()), 0), span);
+  return (g.current / g.target) >= (elapsed / span);
+}
+
+function deadlineNote(deadline) {
+  const left = days(today(), deadline);
+  if (left < 0) return '<span class="late">' + (-left) + 'd overdue</span>';
+  if (left === 0) return '<span class="late">due today</span>';
+  if (left <= 14) return '<span class="soon">' + left + 'd left</span>';
+  return left + 'd left';
+}
+
+const isDone = (g) => g.type === 'money' ? g.current >= g.target : g.done;
+const find = (id) => goals.find((g) => g.id === id);
+
+function render() {
+  goals.sort((a, b) => (isDone(a) - isDone(b)) || (a.createdAt < b.createdAt ? 1 : -1));
+
+  const open = goals.filter((g) => !isDone(g)).length;
+  $('#tally').textContent = goals.length ? open + ' open / ' + goals.length + ' total' : '';
+  $('#empty').hidden = goals.length > 0;
+
+  $('#list').innerHTML = goals.map((g) => {
+    const done = isDone(g);
+    const title = escapeHtml(g.title);
+    const bits = [];
+    if (g.deadline) bits.push(deadlineNote(g.deadline));
+
+    let body;
+    if (g.type === 'money') {
+      const togo = Math.max(g.target - g.current, 0);
+      if (!done && g.deadline) {
+        const rate = perWeek(g.target, g.current, days(today(), g.deadline));
+        if (rate !== null) bits.push(money(Math.ceil(rate)) + '/week to stay on track');
+        if (onPace(g)) bits.push('<span class="ahead">on pace</span>');
+      }
+      body =
+        '<progress value="' + Math.min(g.current / g.target, 1) + '" max="1"></progress>' +
+        '<div class="amounts">' +
+          '<span><b>' + money(g.current) + '</b> of ' + money(g.target) + '</span>' +
+          '<span class="togo">' + (done ? 'reached' : money(togo) + ' to go') + '</span>' +
+        '</div>' +
+        (done ? '' :
+          '<form class="contrib" data-add="' + g.id + '">' +
+            '<input type="number" step="0.01" placeholder="Add amount" aria-label="Add amount to ' + title + '" required>' +
+            '<button type="submit">Add</button>' +
+          '</form>');
+    } else {
+      body =
+        '<label class="check">' +
+          '<input type="checkbox" data-check="' + g.id + '"' + (g.done ? ' checked' : '') + '>' +
+          (g.done ? 'Done' : 'Mark as done') +
+        '</label>';
+    }
+
+    return '<li class="goal' + (done ? ' done' : '') + '">' +
+      '<div class="top">' +
+        '<span class="title">' + title + '</span>' +
+        '<button class="icon-btn" data-edit="' + g.id + '" title="Rename" aria-label="Rename ' + title + '">&#9998;</button>' +
+        '<button class="icon-btn del" data-del="' + g.id + '" title="Delete" aria-label="Delete ' + title + '">&#10005;</button>' +
+      '</div>' +
+      (bits.length ? '<div class="meta">' + bits.join(' &middot; ') + '</div>' : '') +
+      body +
+    '</li>';
+  }).join('');
+}
+
+function commit() { save(goals); render(); }
+
+$('#add-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const type = f.get('type');
+  goals.push({
+    id: crypto.randomUUID(),
+    type: type,
+    title: f.get('title').trim(),
+    target: type === 'money' ? Number(f.get('target')) : null,
+    current: type === 'money' ? 0 : null,
+    done: false,
+    deadline: f.get('deadline') || null,
+    createdAt: today(),
+  });
+  e.target.reset();
+  $('#target-input').hidden = false;
+  $('#target-input').required = true;
+  commit();
+});
+
+// milestones have no dollar target, so drop the field for them
+$('#add-form').addEventListener('change', (e) => {
+  if (e.target.name !== 'type') return;
+  const isMoney = e.target.value === 'money';
+  const t = $('#target-input');
+  t.required = isMoney;
+  t.hidden = !isMoney;
+  if (!isMoney) t.value = '';
+});
+
+$('#list').addEventListener('click', (e) => {
+  const del = e.target.closest('[data-del]');
+  if (del) {
+    const g = find(del.dataset.del);
+    if (confirm('Delete "' + g.title + '"?')) { goals = goals.filter((x) => x.id !== g.id); commit(); }
+    return;
+  }
+  const edit = e.target.closest('[data-edit]');
+  if (edit) {
+    const g = find(edit.dataset.edit);
+    const name = prompt('Rename goal', g.title);
+    if (name && name.trim()) { g.title = name.trim(); commit(); }
+  }
+});
+
+$('#list').addEventListener('change', (e) => {
+  const box = e.target.closest('[data-check]');
+  if (!box) return;
+  find(box.dataset.check).done = box.checked;
+  commit();
+});
+
+$('#list').addEventListener('submit', (e) => {
+  const form = e.target.closest('[data-add]');
+  if (!form) return;
+  e.preventDefault();
+  const amount = Number(form.querySelector('input').value);
+  if (!amount) return;
+  const g = find(form.dataset.add);
+  g.current = Math.max(Math.round((g.current + amount) * 100) / 100, 0);
+  commit();
+});
+
+// backup: localStorage is one cache-clear away from empty
+$('#export').addEventListener('click', () => {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(goals, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'goals-' + today() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+$('#import').addEventListener('click', () => $('#file').click());
+$('#file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data)) throw new Error('not a goals backup');
+    if (goals.length && !confirm('Replace your ' + goals.length + ' current goal(s) with ' + data.length + ' from this file?')) return;
+    goals = data;
+    commit();
+  } catch (err) {
+    alert("Couldn't read that file: " + err.message);
+  }
+  e.target.value = '';
+});
+
+render();
+
+// the only non-obvious math in here: run demo() in devtools
+function demo() {
+  console.assert(perWeek(1000, 0, 70) === 100, 'need $100/wk over 10 weeks');
+  console.assert(perWeek(2400, 350, 140) === 102.5, 'need $102.50/wk');
+  console.assert(perWeek(500, 500, 30) === null, 'target already reached');
+  console.assert(perWeek(500, 100, 0) === null, 'deadline passed');
+  const g = { createdAt: '2026-01-01', deadline: '2026-01-11', target: 100, current: 50 };
+  console.assert(onPace(g, '2026-01-06') === true, 'half saved at halfway = on pace');
+  console.assert(onPace(g, '2026-01-09') === false, '50% saved at 80% elapsed = behind');
+  console.log('demo: ok');
+}
+window.demo = demo;
+</script>
+</body>
+</html>
