@@ -1,3 +1,6 @@
 .DS_Store
 Thumbs.db
 .impeccable/
+.tmp/
+.tmp2/
+.fonts/
