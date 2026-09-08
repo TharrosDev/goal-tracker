@@ -25,8 +25,7 @@ export function useMedia(query: string, serverValue = false): boolean {
 }
 
 /** The OS-level preference, before any in-app override. */
-export const useSystemReducedMotion = (): boolean =>
-  useMedia('(prefers-reduced-motion: reduce)')
+export const useSystemReducedMotion = (): boolean => useMedia('(prefers-reduced-motion: reduce)')
 
 /**
  * The answer the application actually uses. An explicit choice in settings wins;
@@ -52,8 +51,8 @@ export function supportsWebGL(): boolean {
     const canvas = document.createElement('canvas')
     webglSupport = Boolean(
       canvas.getContext('webgl2') ??
-        canvas.getContext('webgl') ??
-        canvas.getContext('experimental-webgl'),
+      canvas.getContext('webgl') ??
+      canvas.getContext('experimental-webgl'),
     )
   } catch {
     webglSupport = false

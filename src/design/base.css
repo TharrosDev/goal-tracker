@@ -120,11 +120,7 @@ ol {
   position: absolute;
   inset: 0;
   opacity: var(--scanline-opacity);
-  background-image: repeating-linear-gradient(
-    to bottom,
-    var(--ink) 0 1px,
-    transparent 1px 3px
-  );
+  background-image: repeating-linear-gradient(to bottom, var(--ink) 0 1px, transparent 1px 3px);
 }
 
 .ambient::after {

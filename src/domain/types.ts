@@ -62,8 +62,12 @@ export interface Goal {
   deadline: ISODate | null
 
   category: string | null
-  /** Hue 0-359. Null means derive it from the id (see identity.ts). */
-  hue: number | null
+  /**
+   * Dye index 0-5, or null to derive it from the category (see identity.ts).
+   * Deliberately not a free hue: colour outside the indigo dye family always
+   * means state, so identity can never collide with a warning.
+   */
+  dye: number | null
   icon: string | null
   priority: Rating
   difficulty: Rating
@@ -154,7 +158,11 @@ export interface Settings {
   lastSeenAt: ISOTime | null
 }
 
-export const WORLD_IDS = ['signal', 'void', 'paper', 'terminal', 'chaos'] as const
+/**
+ * The five camps. Same semantic token names, different values — see DESIGN.md
+ * section 4. LACQUER is the authored default; the rest are peers, not variants.
+ */
+export const WORLD_IDS = ['lacquer', 'washi', 'sumi', 'kuro', 'jigoku'] as const
 export type WorldId = (typeof WORLD_IDS)[number]
 
 /** The full portable shape: what export writes and import reads. */

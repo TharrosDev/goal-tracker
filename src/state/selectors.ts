@@ -6,7 +6,15 @@ import type {
   ProgressEntry,
   TimelineEvent,
 } from '@/domain/types'
-import { arrival, BEHIND, paceGap, perWeek, pressure, projectedFinish, type Arrival } from '@/domain/pace'
+import {
+  arrival,
+  BEHIND,
+  paceGap,
+  perWeek,
+  pressure,
+  projectedFinish,
+  type Arrival,
+} from '@/domain/pace'
 import {
   daysSinceProgress,
   fraction,
@@ -15,7 +23,7 @@ import {
   stateOf,
   streakLength,
 } from '@/domain/progress'
-import { hueOf, massOf, sigilOf, type Sigil } from '@/domain/identity'
+import { dyeOf, massOf, sigilOf, type Sigil } from '@/domain/identity'
 import { momentum, type Momentum } from '@/domain/momentum'
 import { progression, totalXp, type Progression } from '@/domain/xp'
 import { dayOf, days, today } from '@/domain/date'
@@ -54,7 +62,8 @@ export interface GoalView {
   /** Milestone the goal is currently working towards, if any. */
   nextMilestone: Milestone | null
 
-  hue: number
+  /** Index into the six indigo dyes. See DESIGN.md 4.4. */
+  dye: number
   sigil: Sigil
   mass: number
   /** Composite 0..1 used to rank what deserves the most space. */
@@ -100,7 +109,7 @@ export function viewOf(
     streak: streakLength(entries, at),
     habit: goal.recurrence ? habitPeriod(goal, entries, at) : null,
     nextMilestone: milestones.find((m) => !m.done) ?? null,
-    hue: hueOf(goal),
+    dye: dyeOf(goal),
     sigil: sigilOf(goal),
     mass: massOf(goal),
     weight: weightOf(goal, f, a, state),

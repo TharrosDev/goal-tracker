@@ -24,35 +24,50 @@ export const recurrenceSchema = z.object({
   times: z.number().int().min(1).max(100),
 })
 
-export const goalSchema = z.object({
-  id: z.string().min(1),
-  kind: z.enum(GOAL_KINDS),
-  title: z.string().min(1).max(200),
-  why: z.string().max(2000).default(''),
-  definitionOfDone: z.string().max(2000).default(''),
-  unit: z.string().max(24).default(''),
-  target: z.number().finite().nullable().default(null),
-  current: z.number().finite().default(0),
-  done: z.boolean().default(false),
-  completedAt: isoTime.nullable().default(null),
-  startDate: isoDate,
-  deadline: isoDate.nullable().default(null),
-  category: z.string().max(60).nullable().default(null),
-  hue: z.number().min(0).max(359).nullable().default(null),
-  icon: z.string().max(8).nullable().default(null),
-  priority: rating.default(3),
-  difficulty: rating.default(3),
-  boss: z.boolean().default(false),
-  parentId: z.string().nullable().default(null),
-  linkedIds: z.array(z.string()).default([]),
-  notes: z.string().max(20000).default(''),
-  links: z.array(goalLinkSchema).default([]),
-  recurrence: recurrenceSchema.nullable().default(null),
-  paused: z.boolean().default(false),
-  archived: z.boolean().default(false),
-  createdAt: isoTime,
-  updatedAt: isoTime,
-})
+/**
+ * Stage-1 builds stored a free 0-359 `hue` where `dye` now lives. Nothing was
+ * ever released with real values in it, but an export from that build can exist
+ * on a developer's disk, so it is accepted and anything outside the dye range
+ * becomes "derive it from the category".
+ */
+const carryHueToDye = (raw: unknown): unknown => {
+  if (!raw || typeof raw !== 'object' || 'dye' in raw || !('hue' in raw)) return raw
+  const { hue, ...rest } = raw as Record<string, unknown>
+  return { ...rest, dye: typeof hue === 'number' && hue >= 0 && hue <= 5 ? hue : null }
+}
+
+export const goalSchema = z.preprocess(
+  carryHueToDye,
+  z.object({
+    id: z.string().min(1),
+    kind: z.enum(GOAL_KINDS),
+    title: z.string().min(1).max(200),
+    why: z.string().max(2000).default(''),
+    definitionOfDone: z.string().max(2000).default(''),
+    unit: z.string().max(24).default(''),
+    target: z.number().finite().nullable().default(null),
+    current: z.number().finite().default(0),
+    done: z.boolean().default(false),
+    completedAt: isoTime.nullable().default(null),
+    startDate: isoDate,
+    deadline: isoDate.nullable().default(null),
+    category: z.string().max(60).nullable().default(null),
+    dye: z.number().int().min(0).max(5).nullable().default(null),
+    icon: z.string().max(8).nullable().default(null),
+    priority: rating.default(3),
+    difficulty: rating.default(3),
+    boss: z.boolean().default(false),
+    parentId: z.string().nullable().default(null),
+    linkedIds: z.array(z.string()).default([]),
+    notes: z.string().max(20000).default(''),
+    links: z.array(goalLinkSchema).default([]),
+    recurrence: recurrenceSchema.nullable().default(null),
+    paused: z.boolean().default(false),
+    archived: z.boolean().default(false),
+    createdAt: isoTime,
+    updatedAt: isoTime,
+  }),
+)
 
 export const milestoneSchema = z.object({
   id: z.string().min(1),
@@ -90,7 +105,7 @@ export const unlockedAchievementSchema = z.object({
 })
 
 export const settingsSchema = z.object({
-  world: z.enum(WORLD_IDS).default('signal'),
+  world: z.enum(WORLD_IDS).default('lacquer'),
   sound: z.boolean().default(false),
   reducedMotionOverride: z.boolean().nullable().default(null),
   universeRenderer: z.enum(['auto', 'webgl', 'list']).default('auto'),
@@ -151,7 +166,7 @@ export interface NewGoal {
   why?: string
   definitionOfDone?: string
   category?: string | null
-  hue?: number | null
+  dye?: number | null
   icon?: string | null
   priority?: Rating
   difficulty?: Rating
@@ -184,7 +199,7 @@ export function makeGoal(input: NewGoal): Goal {
     startDate: input.startDate ?? today(),
     deadline: input.deadline || null,
     category: input.category?.trim() || null,
-    hue: input.hue ?? null,
+    dye: input.dye ?? null,
     icon: input.icon ?? null,
     priority: input.priority ?? 3,
     difficulty: input.difficulty ?? 3,
@@ -201,7 +216,12 @@ export function makeGoal(input: NewGoal): Goal {
   }
 }
 
-export function makeMilestone(goalId: string, title: string, order: number, at?: number | null): Milestone {
+export function makeMilestone(
+  goalId: string,
+  title: string,
+  order: number,
+  at?: number | null,
+): Milestone {
   return {
     id: uid(),
     goalId,

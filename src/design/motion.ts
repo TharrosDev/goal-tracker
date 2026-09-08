@@ -102,7 +102,10 @@ export const formVariants: Variants = {
 
 /** Stagger for a list arriving together. Capped so a long list is not a queue. */
 export const stagger = (children: number, delay = 0) => ({
-  transition: { staggerChildren: Math.min(0.05, 0.4 / Math.max(children, 1)), delayChildren: delay },
+  transition: {
+    staggerChildren: Math.min(0.05, 0.4 / Math.max(children, 1)),
+    delayChildren: delay,
+  },
 })
 
 /**
@@ -138,7 +141,11 @@ export const settle = (reduced: boolean): Transition =>
 export const resolveVariants: Variants = {
   live: { scale: 1, opacity: 1 },
   collapsing: { scale: 0.86, opacity: 0.9, transition: tween(0.3, EASE.inOut) },
-  resolved: { scale: 1, opacity: 1, transition: { ...tween(DURATION.slow, EASE.back), delay: 0.1 } },
+  resolved: {
+    scale: 1,
+    opacity: 1,
+    transition: { ...tween(DURATION.slow, EASE.back), delay: 0.1 },
+  },
 }
 
 /**

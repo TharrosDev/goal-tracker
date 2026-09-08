@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ACHIEVEMENTS, evaluate, newlyUnlocked, type AchievementContext } from './achievements'
-import { hash, hueOf, massOf, orbitOf, rng, sigilOf } from './identity'
+import { DYE_COUNT, dyeOf, hash, massOf, orbitOf, rng, sigilOf } from './identity'
 import { dailyEntries, entry, ev, goal } from '@/test/fixtures'
 import { makeMilestone } from './schema'
 import type { Goal } from './types'
@@ -77,8 +77,12 @@ describe('individual achievements', () => {
   })
 
   it('OBSESSION needs thirty days running', () => {
-    expect(earned(ctx({ entries: dailyEntries('2026-06-01', '2026-06-20') }))).not.toContain('obsession')
-    expect(earned(ctx({ entries: dailyEntries('2026-06-01', '2026-06-30') }))).toContain('obsession')
+    expect(earned(ctx({ entries: dailyEntries('2026-06-01', '2026-06-20') }))).not.toContain(
+      'obsession',
+    )
+    expect(earned(ctx({ entries: dailyEntries('2026-06-01', '2026-06-30') }))).toContain(
+      'obsession',
+    )
   })
 
   it('CENTURY needs a hundred entries', () => {
@@ -124,8 +128,18 @@ describe('individual achievements', () => {
   })
 
   it('PERFECT WEEK needs at least two recurring commitments, all kept', () => {
-    const a = goal({ id: 'a', kind: 'habit', target: null, recurrence: { period: 'week', times: 1 } })
-    const b = goal({ id: 'b', kind: 'habit', target: null, recurrence: { period: 'week', times: 1 } })
+    const a = goal({
+      id: 'a',
+      kind: 'habit',
+      target: null,
+      recurrence: { period: 'week', times: 1 },
+    })
+    const b = goal({
+      id: 'b',
+      kind: 'habit',
+      target: null,
+      recurrence: { period: 'week', times: 1 },
+    })
     const kept = [entry('2026-06-29', 1, 'a'), entry('2026-06-29', 1, 'b')]
     expect(earned(ctx({ goals: [a, b], entries: kept }))).toContain('perfect-week')
     expect(earned(ctx({ goals: [a, b], entries: [kept[0]!] }))).not.toContain('perfect-week')
@@ -157,14 +171,34 @@ describe('procedural identity', () => {
     expect(a.callsign).not.toBe(b.callsign)
   })
 
-  it('keeps each kind inside its own arc of the hue wheel', () => {
-    const hues = Array.from({ length: 40 }, (_, i) => hueOf(goal({ id: `m${i}`, kind: 'money' })))
-    for (const h of hues) expect(h).toBeGreaterThanOrEqual(140)
-    for (const h of hues) expect(h).toBeLessThanOrEqual(185)
+  it('never leaves the six-dye set, however many goals exist', () => {
+    // The first draft spread identity across the whole hue wheel, which put a
+    // money goal six degrees from --ok and a deadline goal on top of --caution.
+    const dyes = Array.from({ length: 200 }, (_, i) =>
+      dyeOf(goal({ id: `m${i}`, category: `cat-${i}` })),
+    )
+    for (const d of dyes) {
+      expect(Number.isInteger(d)).toBe(true)
+      expect(d).toBeGreaterThanOrEqual(0)
+      expect(d).toBeLessThan(DYE_COUNT)
+    }
+    expect(new Set(dyes).size).toBe(DYE_COUNT)
   })
 
-  it('respects an explicit hue over the derived one', () => {
-    expect(hueOf(goal({ hue: 12 }))).toBe(12)
+  it('gives one category one dye, always', () => {
+    expect(dyeOf(goal({ id: 'a', category: 'SAVINGS' }))).toBe(
+      dyeOf(goal({ id: 'b', category: 'SAVINGS' })),
+    )
+  })
+
+  it('falls back to the kind when there is no category', () => {
+    expect(dyeOf(goal({ id: 'a', kind: 'money', category: null }))).toBe(
+      dyeOf(goal({ id: 'zzz', kind: 'money', category: null })),
+    )
+  })
+
+  it('respects an explicit dye over the derived one', () => {
+    expect(dyeOf(goal({ dye: 4, category: 'SAVINGS' }))).toBe(4)
   })
 
   it('builds a two-letter callsign from the title', () => {

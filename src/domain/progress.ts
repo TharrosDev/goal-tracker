@@ -157,13 +157,19 @@ export function habitPeriod(goal: Goal, entries: ProgressEntry[], at: ISODate = 
     if (r.period === 'week') return weekKey(d) === weekKey(at)
     return d.slice(0, 7) === at.slice(0, 7)
   })
-  return { done: inPeriod.length, target: r.times, period: r.period, kept: inPeriod.length >= r.times }
+  return {
+    done: inPeriod.length,
+    target: r.times,
+    period: r.period,
+    kept: inPeriod.length >= r.times,
+  }
 }
 
 /** Apply an entry to a goal's cached `current`, respecting the mode and kind. */
 export function applyEntry(goal: Goal, entry: Pick<ProgressEntry, 'amount' | 'mode'>): number {
   const next = entry.mode === 'set' ? entry.amount : goal.current + entry.amount
-  const bounded = goal.kind === 'percentage' ? Math.min(Math.max(next, 0), goal.target ?? 100) : next
+  const bounded =
+    goal.kind === 'percentage' ? Math.min(Math.max(next, 0), goal.target ?? 100) : next
   return goal.kind === 'money' ? money(Math.max(bounded, 0)) : Math.max(bounded, 0)
 }
 

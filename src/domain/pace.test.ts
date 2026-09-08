@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { BEHIND, arrival, onPace, paceGap, perWeek, perPeriod, pressure, projectedFinish } from './pace'
+import {
+  BEHIND,
+  arrival,
+  onPace,
+  paceGap,
+  perWeek,
+  perPeriod,
+  pressure,
+  projectedFinish,
+} from './pace'
 import { compact, fig } from './format'
 import { days, fmtDate, weekKey, weekStart, addDays } from './date'
 import { goal } from '@/test/fixtures'
@@ -119,7 +128,9 @@ describe('arrival', () => {
 describe('pressure', () => {
   it('is zero without a deadline and one when overdue', () => {
     expect(pressure(goal({ deadline: null }))).toBe(0)
-    expect(pressure(goal({ startDate: '2026-01-01', deadline: '2026-02-01' }), '2026-03-01')).toBe(1)
+    expect(pressure(goal({ startDate: '2026-01-01', deadline: '2026-02-01' }), '2026-03-01')).toBe(
+      1,
+    )
   })
 
   it('rises monotonically towards the deadline and never exceeds one', () => {

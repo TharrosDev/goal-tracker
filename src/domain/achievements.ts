@@ -285,7 +285,9 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     tier: 'silver',
     check: (ctx) => {
       const cats = new Set(
-        ctx.goals.filter((g) => !g.archived && !g.completedAt && g.category).map((g) => g.category!),
+        ctx.goals
+          .filter((g) => !g.archived && !g.completedAt && g.category)
+          .map((g) => g.category!),
       )
       return cats.size >= 5 ? cats.size : null
     },

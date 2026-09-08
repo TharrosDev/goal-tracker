@@ -137,8 +137,7 @@ export function parseBackup(raw: unknown): { data: Backup; report: ImportReport 
   const events = salvage(timelineEventSchema, source.events ?? [])
   const achievements = salvage(unlockedAchievementSchema, source.achievements ?? [])
 
-  if (!goals.ok.length && goals.rejected.length)
-    throw new Error('no readable goals in that file')
+  if (!goals.ok.length && goals.rejected.length) throw new Error('no readable goals in that file')
 
   report.goals = goals.ok.length
   report.milestones = milestones.ok.length

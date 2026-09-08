@@ -86,7 +86,9 @@ describe('xp', () => {
   })
 
   it('pays far more for a boss goal', () => {
-    expect(xpFor('completed', { ...hard, boss: true })).toBeGreaterThan(xpFor('completed', hard) * 2)
+    expect(xpFor('completed', { ...hard, boss: true })).toBeGreaterThan(
+      xpFor('completed', hard) * 2,
+    )
   })
 
   it('pays a streak bonus only past a week', () => {
@@ -107,7 +109,9 @@ describe('xp', () => {
   })
 
   it('sums what the events actually recorded, not what the table says now', () => {
-    expect(totalXp([ev('progress', '2026-01-01', 12), ev('completed', '2026-01-02', 999)])).toBe(1011)
+    expect(totalXp([ev('progress', '2026-01-01', 12), ev('completed', '2026-01-02', 999)])).toBe(
+      1011,
+    )
   })
 })
 
@@ -136,8 +140,13 @@ describe('progression', () => {
     expect(p.into + xpForLevel(5)).toBe(mid)
   })
 
-  it('gives a title that changes with the level', () => {
-    expect(progression(0).title).toBe('DRIFTER')
-    expect(progression(xpForLevel(40)).title).not.toBe('DRIFTER')
+  it('climbs the rank ladder every four levels', () => {
+    expect(progression(0).title).toBe('ASHIGARU')
+    expect(progression(xpForLevel(4)).title).toBe('ASHIGARU')
+    expect(progression(xpForLevel(5)).title).toBe('KUMIGASHIRA')
+    expect(progression(xpForLevel(9)).title).toBe('SAMURAI')
+    expect(progression(xpForLevel(37)).title).toBe('SHOGUN')
+    // The ladder tops out rather than running off the end of the array.
+    expect(progression(xpForLevel(400)).title).toBe('SHOGUN')
   })
 })

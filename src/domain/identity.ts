@@ -1,4 +1,4 @@
-import type { Goal, GoalKind } from './types'
+import type { Goal } from './types'
 
 /**
  * Procedural identity.
@@ -32,27 +32,24 @@ export function rng(seed: string) {
 }
 
 /**
- * Each kind owns an arc of the wheel, so category reads before identity does:
- * money is always in the gold-green arc, streaks always in the violet one.
+ * Identity is a dye, not a hue.
+ *
+ * The first draft spread goals across the whole 360-degree wheel. That put a
+ * money goal six degrees from `--ok` and a deadline goal on top of `--caution`,
+ * inside a palette whose entire thesis is that colour is scarce — so a colour a
+ * person never chose could contradict a warning the system was trying to give.
+ *
+ * There are now six dyes, all in the indigo family, all cleared for contrast in
+ * every camp. Colour outside that family always means state. Identity's strong
+ * channels are the mon and the stencil cut into the cloth; the dye is
+ * deliberately a weak one, and it encodes CATEGORY — which is what a unit's
+ * lacing colour actually identified.
  */
-const KIND_ARC: Record<GoalKind, [number, number]> = {
-  money: [140, 185],
-  numeric: [186, 215],
-  percentage: [216, 240],
-  habit: [40, 70],
-  streak: [268, 300],
-  project: [10, 38],
-  deadline: [345, 8],
-  milestone: [301, 330],
-  countdown: [190, 210],
-  custom: [72, 110],
-}
+export const DYE_COUNT = 6
 
-export function hueOf(goal: Pick<Goal, 'id' | 'kind' | 'hue'>): number {
-  if (goal.hue !== null) return goal.hue
-  const [from, to] = KIND_ARC[goal.kind]
-  const span = (to - from + 360) % 360
-  return Math.round((from + (hash(goal.id) % 1000) / 1000 * span) % 360)
+export function dyeOf(goal: Pick<Goal, 'dye' | 'kind' | 'category'>): number {
+  if (goal.dye !== null) return goal.dye
+  return hash(goal.category ?? goal.kind) % DYE_COUNT
 }
 
 export interface Sigil {
@@ -68,7 +65,7 @@ export interface Sigil {
 
 const SHAPES = ['dot', 'bar', 'notch'] as const
 
-export function sigilOf(goal: Pick<Goal, 'id' | 'kind' | 'difficulty' | 'priority' | 'title'>): Sigil {
+export function sigilOf(goal: Pick<Goal, 'id' | 'kind' | 'difficulty' | 'title'>): Sigil {
   const next = rng(goal.id + goal.kind)
   const ringCount = 2 + Math.floor(next() * 2) + (goal.difficulty >= 4 ? 1 : 0)
   const symmetry = 3 + Math.floor(next() * 6)

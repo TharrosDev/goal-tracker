@@ -52,8 +52,7 @@ export function xpFor(
   return Math.round(xp)
 }
 
-export const totalXp = (events: TimelineEvent[]): number =>
-  events.reduce((sum, e) => sum + e.xp, 0)
+export const totalXp = (events: TimelineEvent[]): number => events.reduce((sum, e) => sum + e.xp, 0)
 
 /** Cumulative XP required to *reach* a level. Level 1 starts at zero. */
 const CURVE_BASE = 140
@@ -74,18 +73,23 @@ export interface Progression {
   title: string
 }
 
-/** Flavour, not hierarchy. Nobody is ranked against anybody. */
+/**
+ * The rank ladder. Advances every four levels. See DESIGN.md section 3.
+ *
+ * Rank is never a comparison against another person, because there is no other
+ * person in this product. It records your own accumulated merit and nothing else.
+ */
 const TITLES = [
-  'DRIFTER',
-  'INITIATE',
-  'OPERATOR',
-  'ARCHITECT',
-  'NAVIGATOR',
-  'STRATEGIST',
-  'VANGUARD',
-  'PARAGON',
-  'SOVEREIGN',
-  'MYTHIC',
+  'ASHIGARU',
+  'KUMIGASHIRA',
+  'SAMURAI',
+  'HATAMOTO',
+  'MONOGASHIRA',
+  'BUGYO',
+  'TAISHO',
+  'SHUGO',
+  'DAIMYO',
+  'SHOGUN',
 ] as const
 
 export function progression(xp: number): Progression {
@@ -102,6 +106,6 @@ export function progression(xp: number): Progression {
     span,
     fraction: span ? into / span : 0,
     nextAt,
-    title: TITLES[Math.min(Math.floor((level - 1) / 4), TITLES.length - 1)] ?? 'DRIFTER',
+    title: TITLES[Math.min(Math.floor((level - 1) / 4), TITLES.length - 1)] ?? 'ASHIGARU',
   }
 }

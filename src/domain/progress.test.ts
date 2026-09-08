@@ -81,7 +81,12 @@ describe('fraction', () => {
   })
 
   it('is elapsed time for a countdown', () => {
-    const g = goal({ kind: 'countdown', target: null, startDate: '2026-01-01', deadline: '2026-01-11' })
+    const g = goal({
+      kind: 'countdown',
+      target: null,
+      startDate: '2026-01-01',
+      deadline: '2026-01-11',
+    })
     expect(fraction(g, [], '2026-01-06')).toBe(0.5)
     expect(fraction(g, [], '2026-02-01')).toBe(1)
   })
@@ -131,7 +136,10 @@ describe('streaks', () => {
   })
 
   it('finds the longest run ever, not the current one', () => {
-    const e = [...dailyEntries('2026-01-01', '2026-01-20'), ...dailyEntries('2026-03-01', '2026-03-03')]
+    const e = [
+      ...dailyEntries('2026-01-01', '2026-01-20'),
+      ...dailyEntries('2026-03-01', '2026-03-03'),
+    ]
     expect(longestStreak(e)).toBe(20)
     expect(streakLength(e, '2026-03-03')).toBe(3)
   })

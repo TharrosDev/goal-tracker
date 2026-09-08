@@ -7,12 +7,7 @@ import type {
 } from '@/domain/types'
 import { makeGoal, makeMilestone, uid, type NewGoal } from '@/domain/schema'
 import { dayOf, days, now, today } from '@/domain/date'
-import {
-  applyEntry,
-  daysSinceProgress,
-  isDone,
-  streakLength,
-} from '@/domain/progress'
+import { applyEntry, daysSinceProgress, isDone, streakLength } from '@/domain/progress'
 import { RECOVERY_AFTER, xpFor } from '@/domain/xp'
 import { newlyUnlocked } from '@/domain/achievements'
 import { db } from './db'
@@ -210,7 +205,9 @@ export async function undoEntry(entryId: string): Promise<void> {
 
   const events = await db.events.where('goalId').equals(entry.goalId).toArray()
   const orphaned = events
-    .filter((e) => e.type === 'progress' && Math.abs(Date.parse(e.at) - Date.parse(entry.at)) < 2000)
+    .filter(
+      (e) => e.type === 'progress' && Math.abs(Date.parse(e.at) - Date.parse(entry.at)) < 2000,
+    )
     .map((e) => e.id)
 
   await db.transaction('rw', [db.goals, db.entries, db.events], async () => {
@@ -260,9 +257,7 @@ export async function patchGoal(id: string, patch: Partial<Goal>): Promise<Goal 
     )
   if (patch.paused !== undefined && patch.paused !== goal.paused)
     events.push(
-      patch.paused
-        ? event('paused', id, 0)
-        : event('resumed', id, xpFor('resumed', goal)),
+      patch.paused ? event('paused', id, 0) : event('resumed', id, xpFor('resumed', goal)),
     )
   if (patch.archived !== undefined && patch.archived !== goal.archived)
     events.push(patch.archived ? event('archived', id, 0) : event('restored', id, 0))
@@ -327,24 +322,19 @@ export async function deleteGoal(id: string): Promise<Trash | null> {
     db.goals.where('parentId').equals(id).toArray(),
   ])
 
-  await db.transaction(
-    'rw',
-    [db.goals, db.milestones, db.entries, db.events],
-    async () => {
-      await db.goals.delete(id)
-      await db.milestones.bulkDelete(milestones.map((m) => m.id))
-      await db.entries.bulkDelete(entries.map((e) => e.id))
-      await db.events.bulkDelete(events.map((e) => e.id))
-      if (children.length)
-        await db.goals.bulkPut(children.map((c) => ({ ...c, parentId: null })))
-      // Also drop dangling links from every other goal.
-      const linked = await db.goals.filter((g) => g.linkedIds.includes(id)).toArray()
-      if (linked.length)
-        await db.goals.bulkPut(
-          linked.map((g) => ({ ...g, linkedIds: g.linkedIds.filter((x) => x !== id) })),
-        )
-    },
-  )
+  await db.transaction('rw', [db.goals, db.milestones, db.entries, db.events], async () => {
+    await db.goals.delete(id)
+    await db.milestones.bulkDelete(milestones.map((m) => m.id))
+    await db.entries.bulkDelete(entries.map((e) => e.id))
+    await db.events.bulkDelete(events.map((e) => e.id))
+    if (children.length) await db.goals.bulkPut(children.map((c) => ({ ...c, parentId: null })))
+    // Also drop dangling links from every other goal.
+    const linked = await db.goals.filter((g) => g.linkedIds.includes(id)).toArray()
+    if (linked.length)
+      await db.goals.bulkPut(
+        linked.map((g) => ({ ...g, linkedIds: g.linkedIds.filter((x) => x !== id) })),
+      )
+  })
   return { goal, milestones, entries, events, children }
 }
 

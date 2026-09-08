@@ -1,235 +1,278 @@
 /*
- * SEMANTIC TOKENS
+ * SEMANTIC TOKENS — THE FIVE CAMPS
  *
- * Every colour in the application is one of the names below. A world changes
- * what the names point at; it never adds a name, and no component ever writes a
- * literal colour. That is the whole contract, and it is what makes five
- * genuinely different visual worlds possible without five sets of components.
+ * Every colour in the application is one of the names below. A camp changes what
+ * the names point at; it never adds a name, and no component ever writes a
+ * literal colour.
  *
- * SIGNAL is the authored default: a high-energy technical instrument. Near-black
- * ground, hairline structure, and four saturated signal colours that each mean
- * exactly one thing. Colour here is data, not decoration — if everything glows,
- * nothing reads.
+ * LACQUER is the authored default: kachi-iro, the indigo-black of victory-dyed
+ * armour. Blue-shifted and warm-inked, so it is not the neutral near-black that
+ * every dark interface reaches for.
+ *
+ * THE BINDING RULE (DESIGN.md 4.1): every value the interface encodes clears
+ * 3:1 against what it sits on, and every piece of text clears 4.5:1. This file
+ * is parsed by src/design/contrast.test.ts, which computes every pair in every
+ * camp and fails the build. Lacquer depth, sheen and grain are a RICHNESS layer
+ * — they may enrich a channel and may never be the only carrier of one.
+ *
+ * That rule exists because the first four art directions all failed on it:
+ * their signature encodings computed to 1.07-1.35:1 and could not be seen.
  */
 
 :root,
-[data-world='signal'] {
+[data-world='lacquer'] {
   color-scheme: dark;
 
   /* ── ground ────────────────────────────────────────────────────────────── */
-  --ground: #04060a;
-  --ground-raised: #090e16;
-  --ground-inset: #010306;
-  --ground-scrim: rgba(2, 4, 8, 0.86);
+  --ground: #0c1018;
+  --ground-raised: #151b27;
+  --ground-inset: #06080d;
+  --ground-scrim: rgba(6, 8, 13, 0.88);
 
   /* ── ink ───────────────────────────────────────────────────────────────── */
-  --ink: #e9f2f8;
-  --ink-dim: #93a7b6;
-  --ink-faint: #566875;
-  --ink-inverse: #04060a;
+  --ink: #f2ede1; /* gofun bone */
+  --ink-dim: #a9a294;
+  --ink-faint: #8a8474; /* the floor. Nothing dimmer than this exists. */
+  --ink-inverse: #0c1018;
 
   /* ── structure ─────────────────────────────────────────────────────────── */
-  --rule: rgba(147, 167, 182, 0.16);
-  --rule-strong: rgba(147, 167, 182, 0.34);
-  --rule-hair: rgba(147, 167, 182, 0.08);
+  --rule: rgba(242, 237, 225, 0.16);
+  --rule-strong: rgba(242, 237, 225, 0.42);
+  --rule-hair: rgba(242, 237, 225, 0.09);
 
-  /* ── signal ────────────────────────────────────────────────────────────── */
-  --accent: #00e0ff;
-  --accent-ink: #04060a;
-  --ok: #b4ff35;
-  --warn: #ffb302;
-  --caution: #ff2d6f;
-  --xp: #8a6bff;
+  /* ── signal. Each of these means exactly one thing. ────────────────────── */
+  --accent: #d8b25e; /* kin — gold leaf. Merit, rank, active, the seal. */
+  --accent-ink: #0c1018;
+  --ok: #8cc077; /* moegi — ahead of the line */
+  --warn: #dd9a45; /* kuchiba — the hour approaches */
+  --caution: #f4573a; /* shu — vermilion. See DESIGN.md 4.3. */
+  --merit: #d8b25e; /* merit is gold leaf. There is no purple. */
 
   /* ── goal states ───────────────────────────────────────────────────────── */
-  --state-new: #b4ff35;
-  --state-active: #00e0ff;
-  --state-critical: #ff2d6f;
-  --state-stalled: #566875;
-  --state-paused: #566875;
-  --state-completed: #e9f2f8;
+  --state-new: #8cc077;
+  --state-active: #d8b25e;
+  --state-critical: #f4573a;
+  --state-stalled: #8a8474;
+  --state-paused: #8a8474;
+  --state-completed: #f2ede1;
 
-  /* ── surfaces built from the above ─────────────────────────────────────── */
-  --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 40%, transparent),
-    0 0 32px -8px color-mix(in oklab, var(--accent) 60%, transparent);
-  --field: rgba(147, 167, 182, 0.06);
-  --field-focus: rgba(0, 224, 255, 0.1);
+  /* ── the six dyes. Identity, never state. DESIGN.md 4.4. ───────────────── */
+  --dye-1: #6f93b8; /* ai */
+  --dye-2: #9db4cc; /* usu-ai */
+  --dye-3: #5da3a3; /* ai-midori */
+  --dye-4: #9188bd; /* ai-murasaki */
+  --dye-5: #5e93b5; /* hanada */
+  --dye-6: #b3c3d4; /* shira-ai */
+
+  /* ── derived surfaces ──────────────────────────────────────────────────── */
+  --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 34%, transparent);
+  --field: rgba(242, 237, 225, 0.05);
+  --field-focus: rgba(216, 178, 94, 0.12);
 
   /* ── type ──────────────────────────────────────────────────────────────── */
   --font-display: 'Archivo Variable', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --font-body: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
-  /* Width axis, used as a system: labels are condensed, display type expands. */
-  --wdth-condensed: 78;
+  /* The width axis is the system; weight is secondary. */
+  --wdth-condensed: 76;
   --wdth-normal: 100;
-  --wdth-wide: 118;
+  --wdth-wide: 116;
+  --wdth-mega: 62;
 
   /* ── geometry ──────────────────────────────────────────────────────────── */
-  /* Sharp by default. Rounded corners are the house style of the thing this
-     product is deliberately not. A radius has to be argued for. */
+  /* Sharp. A radius has to be argued for — but note that radius 0 is NOT an
+     anti-card defence on its own: see the FORBIDDEN list in DESIGN.md. */
   --radius: 0px;
-  --radius-soft: 2px;
   --hair: 1px;
 
-  /* ── noise / texture ───────────────────────────────────────────────────── */
-  --scanline-opacity: 0.045;
-  --grain-opacity: 0.03;
+  /* ── texture ───────────────────────────────────────────────────────────── */
+  --scanline-opacity: 0.03;
+  --grain-opacity: 0.04;
+  --sheen-opacity: 0.05;
+  /* Wind amplitude multiplier. STILL AIR sets this to 0. */
+  --wind: 1;
 }
 
 /*
- * VOID — dark tactical. The signal palette drained to one amber channel, so the
- * interface reads as instrumentation rather than energy. Quieter, colder,
- * built for long sessions.
+ * WASHI — paper day. The same camp struck at noon on paper stock. Nothing
+ * glows; emphasis is scale, overprint and the weight of ink.
  */
-[data-world='void'] {
-  color-scheme: dark;
-  --ground: #060607;
-  --ground-raised: #0d0e10;
-  --ground-inset: #010102;
-  --ground-scrim: rgba(4, 4, 5, 0.88);
-  --ink: #ecebe8;
-  --ink-dim: #9b9a95;
-  --ink-faint: #5c5b57;
-  --ink-inverse: #060607;
-  --rule: rgba(236, 235, 232, 0.14);
-  --rule-strong: rgba(236, 235, 232, 0.3);
-  --rule-hair: rgba(236, 235, 232, 0.07);
-  --accent: #ffb648;
-  --accent-ink: #060607;
-  --ok: #cfd3c4;
-  --warn: #ffb648;
-  --caution: #ff5c3a;
-  --xp: #d8cdb4;
-  --state-new: #cfd3c4;
-  --state-active: #ffb648;
-  --state-critical: #ff5c3a;
-  --state-stalled: #5c5b57;
-  --state-paused: #5c5b57;
-  --state-completed: #ecebe8;
-  --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 34%, transparent);
-  --field: rgba(236, 235, 232, 0.05);
-  --field-focus: rgba(255, 182, 72, 0.1);
-  --scanline-opacity: 0.02;
-  --grain-opacity: 0.045;
-}
-
-/*
- * PAPER — experimental printed editorial. Off-white stock, black ink, two
- * risograph spots. Nothing glows; emphasis comes from scale and overprint.
- */
-[data-world='paper'] {
+[data-world='washi'] {
   color-scheme: light;
-  --ground: #f2efe6;
-  --ground-raised: #ffffff;
-  --ground-inset: #e6e2d6;
-  --ground-scrim: rgba(242, 239, 230, 0.9);
-  --ink: #14120f;
-  --ink-dim: #56514a;
-  --ink-faint: #8b857b;
-  --ink-inverse: #f2efe6;
-  --rule: rgba(20, 18, 15, 0.26);
-  --rule-strong: rgba(20, 18, 15, 0.6);
-  --rule-hair: rgba(20, 18, 15, 0.12);
-  --accent: #1f3ee0;
-  --accent-ink: #f2efe6;
-  --ok: #0f7a4a;
-  --warn: #b26a00;
-  --caution: #e02b2b;
-  --xp: #1f3ee0;
-  --state-new: #0f7a4a;
-  --state-active: #1f3ee0;
-  --state-critical: #e02b2b;
-  --state-stalled: #8b857b;
-  --state-paused: #8b857b;
-  --state-completed: #14120f;
+  --ground: #e8e1ce;
+  --ground-raised: #f3eee0;
+  --ground-inset: #d6cdb6;
+  --ground-scrim: rgba(232, 225, 206, 0.9);
+  --ink: #17140e;
+  --ink-dim: #4e4738;
+  --ink-faint: #635b4a;
+  --ink-inverse: #f3eee0;
+  --rule: rgba(23, 20, 14, 0.24);
+  --rule-strong: rgba(23, 20, 14, 0.58);
+  --rule-hair: rgba(23, 20, 14, 0.12);
+  --accent: #7d5c12;
+  --accent-ink: #f3eee0;
+  --ok: #2c6236;
+  --warn: #7d4c0c;
+  --caution: #a81f12;
+  --merit: #7d5c12;
+  --state-new: #2c6236;
+  --state-active: #7d5c12;
+  --state-critical: #a81f12;
+  --state-stalled: #635b4a;
+  --state-paused: #635b4a;
+  --state-completed: #17140e;
+  --dye-1: #2c4c70;
+  --dye-2: #3f5f80;
+  --dye-3: #1e5a5a;
+  --dye-4: #4a3f77;
+  --dye-5: #24506e;
+  --dye-6: #4c5f72;
   --glow: none;
-  --field: rgba(20, 18, 15, 0.05);
-  --field-focus: rgba(31, 62, 224, 0.08);
+  --field: rgba(23, 20, 14, 0.05);
+  --field-focus: rgba(125, 92, 18, 0.1);
   --scanline-opacity: 0;
   --grain-opacity: 0.07;
+  --sheen-opacity: 0;
 }
 
 /*
- * TERMINAL — machine interface. One phosphor colour and its dimmings, box-rule
- * structure, everything monospaced.
+ * SUMI — ink and paper. The only colour in this camp is the seal. State is
+ * carried entirely by form, which makes SUMI the proof that the form language
+ * in DESIGN.md 10 actually works.
  */
-[data-world='terminal'] {
-  color-scheme: dark;
-  --ground: #020604;
-  --ground-raised: #04100a;
-  --ground-inset: #010302;
-  --ground-scrim: rgba(1, 4, 2, 0.9);
-  --ink: #6bff9e;
-  --ink-dim: #37a865;
-  --ink-faint: #1e5f3a;
-  --ink-inverse: #020604;
-  --rule: rgba(107, 255, 158, 0.2);
-  --rule-strong: rgba(107, 255, 158, 0.45);
-  --rule-hair: rgba(107, 255, 158, 0.1);
-  --accent: #6bff9e;
-  --accent-ink: #020604;
-  --ok: #6bff9e;
-  --warn: #e8ff6b;
-  --caution: #ff6b6b;
-  --xp: #6bffe8;
-  --state-new: #e8ff6b;
-  --state-active: #6bff9e;
-  --state-critical: #ff6b6b;
-  --state-stalled: #1e5f3a;
-  --state-paused: #1e5f3a;
-  --state-completed: #d9ffe8;
-  --glow: 0 0 24px -6px color-mix(in oklab, var(--accent) 70%, transparent);
-  --field: rgba(107, 255, 158, 0.06);
-  --field-focus: rgba(107, 255, 158, 0.12);
-  --font-display: 'JetBrains Mono Variable', ui-monospace, monospace;
-  --font-body: 'JetBrains Mono Variable', ui-monospace, monospace;
-  --wdth-condensed: 100;
-  --wdth-wide: 100;
-  --scanline-opacity: 0.09;
-  --grain-opacity: 0.02;
-}
-
-/*
- * CHAOS — maximum intensity. Every signal colour live at once. Deliberately
- * uncomfortable; offered, never defaulted to.
- */
-[data-world='chaos'] {
-  color-scheme: dark;
-  --ground: #0a0014;
-  --ground-raised: #16002b;
-  --ground-inset: #050009;
-  --ground-scrim: rgba(10, 0, 20, 0.85);
-  --ink: #fff5ff;
-  --ink-dim: #c79fe0;
-  --ink-faint: #7c5a94;
-  --ink-inverse: #0a0014;
-  --rule: rgba(255, 245, 255, 0.22);
-  --rule-strong: rgba(255, 245, 255, 0.5);
-  --rule-hair: rgba(255, 245, 255, 0.1);
-  --accent: #00ffd5;
-  --accent-ink: #0a0014;
-  --ok: #d0ff00;
-  --warn: #ff9d00;
-  --caution: #ff0055;
-  --xp: #b400ff;
-  --state-new: #d0ff00;
-  --state-active: #00ffd5;
-  --state-critical: #ff0055;
-  --state-stalled: #7c5a94;
-  --state-paused: #7c5a94;
-  --state-completed: #fff5ff;
-  --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 60%, transparent),
-    0 0 48px -6px color-mix(in oklab, var(--accent) 80%, transparent);
-  --field: rgba(255, 245, 255, 0.08);
-  --field-focus: rgba(0, 255, 213, 0.16);
-  --scanline-opacity: 0.08;
+[data-world='sumi'] {
+  color-scheme: light;
+  --ground: #ede9de;
+  --ground-raised: #f7f4ec;
+  --ground-inset: #ddd8c9;
+  --ground-scrim: rgba(237, 233, 222, 0.92);
+  --ink: #14120f;
+  --ink-dim: #46423a;
+  --ink-faint: #5e594e;
+  --ink-inverse: #f7f4ec;
+  --rule: rgba(20, 18, 15, 0.26);
+  --rule-strong: rgba(20, 18, 15, 0.62);
+  --rule-hair: rgba(20, 18, 15, 0.13);
+  --accent: #14120f;
+  --accent-ink: #f7f4ec;
+  --ok: #14120f;
+  --warn: #46423a;
+  --caution: #9e2b1c; /* the seal — the one colour in this camp */
+  --merit: #14120f;
+  --state-new: #46423a;
+  --state-active: #14120f;
+  --state-critical: #9e2b1c;
+  --state-stalled: #5e594e;
+  --state-paused: #5e594e;
+  --state-completed: #14120f;
+  --dye-1: #3a3730;
+  --dye-2: #504b42;
+  --dye-3: #2b2925;
+  --dye-4: #45403a;
+  --dye-5: #35322c;
+  --dye-6: #5a544a;
+  --glow: none;
+  --field: rgba(20, 18, 15, 0.05);
+  --field-focus: rgba(20, 18, 15, 0.1);
+  --scanline-opacity: 0;
   --grain-opacity: 0.05;
+  --sheen-opacity: 0;
+}
+
+/*
+ * KURO — cinema. Every state token is a grey step, so this camp is the canary:
+ * if you cannot tell a critical standard from an active one here, the FORM is
+ * wrong and gets fixed for every camp, not patched with colour in this one.
+ */
+[data-world='kuro'] {
+  color-scheme: dark;
+  --ground: #000000;
+  --ground-raised: #141414;
+  --ground-inset: #000000;
+  --ground-scrim: rgba(0, 0, 0, 0.9);
+  --ink: #ffffff;
+  --ink-dim: #b8b8b8;
+  --ink-faint: #949494;
+  --ink-inverse: #000000;
+  --rule: rgba(255, 255, 255, 0.2);
+  --rule-strong: rgba(255, 255, 255, 0.5);
+  --rule-hair: rgba(255, 255, 255, 0.1);
+  --accent: #ffffff;
+  --accent-ink: #000000;
+  --ok: #d9d9d9;
+  --warn: #c4c4c4;
+  --caution: #ffffff;
+  --merit: #ffffff;
+  --state-new: #ffffff;
+  --state-active: #d9d9d9;
+  --state-critical: #ffffff;
+  --state-stalled: #949494;
+  --state-paused: #949494;
+  --state-completed: #ffffff;
+  --dye-1: #a8a8a8;
+  --dye-2: #c0c0c0;
+  --dye-3: #989898;
+  --dye-4: #b0b0b0;
+  --dye-5: #a0a0a0;
+  --dye-6: #cccccc;
+  --glow: none;
+  --field: rgba(255, 255, 255, 0.06);
+  --field-focus: rgba(255, 255, 255, 0.14);
+  --scanline-opacity: 0.05;
+  --grain-opacity: 0.06;
+  --sheen-opacity: 0.02;
+}
+
+/*
+ * JIGOKU — the hell-screen. Every signal live at once. Offered, never
+ * defaulted to; the wind runs at 1.6x here.
+ */
+[data-world='jigoku'] {
+  color-scheme: dark;
+  --ground: #14060a;
+  --ground-raised: #240d12;
+  --ground-inset: #0a0305;
+  --ground-scrim: rgba(20, 6, 10, 0.88);
+  --ink: #fff2e8;
+  --ink-dim: #d8a898;
+  --ink-faint: #b28578;
+  --ink-inverse: #14060a;
+  --rule: rgba(255, 242, 232, 0.22);
+  --rule-strong: rgba(255, 242, 232, 0.5);
+  --rule-hair: rgba(255, 242, 232, 0.11);
+  --accent: #ffc53d;
+  --accent-ink: #14060a;
+  --ok: #a8e05f;
+  --warn: #ff8a00;
+  --caution: #ff4a3d;
+  --merit: #ffc53d;
+  --state-new: #a8e05f;
+  --state-active: #ffc53d;
+  --state-critical: #ff4a3d;
+  --state-stalled: #b28578;
+  --state-paused: #b28578;
+  --state-completed: #fff2e8;
+  --dye-1: #c98fd8;
+  --dye-2: #e0b0e8;
+  --dye-3: #7fd4c4;
+  --dye-4: #b49bf0;
+  --dye-5: #8fb8e8;
+  --dye-6: #d9c4e8;
+  --glow:
+    0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent),
+    0 0 44px -8px color-mix(in oklab, var(--accent) 75%, transparent);
+  --field: rgba(255, 242, 232, 0.08);
+  --field-focus: rgba(255, 197, 61, 0.16);
+  --scanline-opacity: 0.08;
+  --grain-opacity: 0.06;
+  --sheen-opacity: 0.07;
+  --wind: 1.6;
 }
 
 /* ── scale ─────────────────────────────────────────────────────────────────
- * One spacing rhythm, shared by every world. Values are unitless multiples of
- * the base step so a layout can be re-tuned in one place.
+ * One rhythm, shared by every camp.
  */
 :root {
   --step: 4px;
@@ -244,12 +287,14 @@
   --s24: calc(var(--step) * 24);
   --s32: calc(var(--step) * 32);
 
-  /* Minimum touch target. Not negotiable on any world or breakpoint. */
+  /* Minimum touch target. Not negotiable on any camp or breakpoint. */
   --tap: 44px;
 
-  /* Chrome dimensions the layout and the WebGL scene both need to agree on. */
+  /* Chrome the layout and the WebGL scene both have to agree on. */
   --rail: 64px;
   --bottom-nav: 68px;
+  /* The field's ground line, as a fraction of the field's height. */
+  --ground-line: 88%;
 
   --z-scene: 0;
   --z-content: 10;
