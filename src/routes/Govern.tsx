@@ -4,7 +4,6 @@ import { useWorld } from '@/state/world'
 import { useWorldView } from '@/state/useWorldView'
 import type { GoalView } from '@/state/selectors'
 import { Mon } from '@/viz/Mon'
-import { SURFACE } from '@/design/marks'
 import { value } from '@/domain/format'
 import './govern.css'
 
@@ -59,7 +58,9 @@ export function Govern({ view }: { view: GoalView }) {
         <div className="govern__body">
           {/* ── gates ─────────────────────────────────────────────────────── */}
           <div className="govern__block">
-            <p className="label">{SURFACE.gate.name}S</p>
+            {/* Not `{SURFACE.gate.name}S` — that name carries its own article
+                and pluralised to "A GATES". */}
+            <p className="label">GATES</p>
             {view.milestones.length > 0 && (
               <ul className="govern__gates">
                 {view.milestones.map((m) => (
