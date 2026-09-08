@@ -1,0 +1,283 @@
+/* PLANTING. Quick is one field; the ritual asks the questions that matter. */
+.plant {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--s8);
+  display: grid;
+  align-content: start;
+  gap: var(--s4);
+  max-width: 720px;
+}
+
+.plant__quick {
+  display: grid;
+  gap: var(--s5, var(--s4));
+  margin-top: var(--s4);
+}
+
+.plant__field {
+  display: grid;
+  gap: var(--s2);
+}
+
+.plant__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s4);
+}
+
+.plant__title,
+.plant__target,
+.plant__unit,
+.plant__date,
+.plant__prose {
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s2) var(--s3);
+  background: var(--field);
+  border: var(--hair) solid var(--rule);
+  color: var(--ink);
+  font-size: var(--t-body);
+}
+
+.plant__title {
+  font-family: var(--font-display);
+  font-size: var(--t-h2);
+  font-weight: 700;
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+}
+
+.plant__target {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  font-weight: 700;
+}
+
+.plant__prose {
+  font-family: var(--font-body);
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.plant__title:focus-visible,
+.plant__target:focus-visible,
+.plant__unit:focus-visible,
+.plant__date:focus-visible,
+.plant__prose:focus-visible {
+  border-color: var(--accent);
+  background: var(--field-focus);
+}
+
+.plant__note {
+  font-size: var(--t-label-lg);
+  color: var(--ink-faint);
+  line-height: 1.4;
+}
+
+.plant__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s4);
+  align-items: center;
+  padding-top: var(--s4);
+  border-top: var(--hair) solid var(--rule);
+}
+
+.plant__go,
+.plant__back,
+.plant__ritual {
+  min-height: var(--tap);
+  padding: var(--s2) var(--s6);
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.plant__go {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.plant__go:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.plant__back,
+.plant__ritual {
+  color: var(--ink-faint);
+}
+
+.plant__ritual {
+  margin-left: auto;
+}
+
+/* ── kinds ──────────────────────────────────────────────────────────────── */
+
+.kinds,
+.rating {
+  border: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  align-items: center;
+}
+
+.kinds legend,
+.rating legend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--s2);
+}
+
+.kinds__item {
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--s3);
+  border: var(--hair) solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.kinds__item.is-on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.kinds__item:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── rating ─────────────────────────────────────────────────────────────── */
+
+.rating__step {
+  width: var(--tap);
+  height: var(--tap);
+  display: grid;
+  place-items: center;
+  border: var(--hair) solid var(--rule);
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.rating__step.is-on {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.rating__step:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── the ritual ─────────────────────────────────────────────────────────── */
+
+.plant--ritual {
+  align-content: center;
+  max-width: 780px;
+  gap: var(--s6);
+}
+
+.oath__progress {
+  display: flex;
+  gap: var(--s2);
+}
+
+.oath__pip {
+  display: block;
+  width: 34px;
+  height: 2px;
+  background: var(--rule);
+}
+
+.oath__progress li.is-done .oath__pip {
+  background: var(--accent);
+}
+
+.oath {
+  display: grid;
+  gap: var(--s4);
+}
+
+.oath__mark {
+  font-family: 'Marks', serif;
+  font-size: 44px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.oath__question {
+  color: var(--ink);
+}
+
+.oath__shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.oath__shortcuts button {
+  min-height: var(--tap);
+  padding: 0 var(--s3);
+  border: var(--hair) solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-dim);
+}
+
+.oath__shortcuts button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.oath__boss {
+  display: flex;
+  gap: var(--s3);
+  align-items: center;
+  min-height: var(--tap);
+  font-size: var(--t-body);
+  color: var(--ink-dim);
+}
+
+.oath__commit {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s6);
+  align-items: center;
+}
+
+.oath__title {
+  font-family: var(--font-display);
+  font-size: var(--t-h1);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--ink);
+  margin: var(--s2) 0;
+}
+
+@media (max-width: 900px) {
+  .plant {
+    padding: var(--s4) var(--s4) var(--s24);
+  }
+  .plant__row,
+  .oath__commit {
+    grid-template-columns: 1fr;
+  }
+  .plant__ritual {
+    margin-left: 0;
+  }
+}

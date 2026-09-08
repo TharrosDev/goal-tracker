@@ -4,6 +4,7 @@ import { useWorld } from '@/state/world'
 import { AppShell } from '@/shell/AppShell'
 import { WarTable } from '@/routes/WarTable'
 import { StandardDetail } from '@/routes/StandardDetail'
+import { Plant } from '@/routes/Plant'
 import { Holding } from '@/routes/Holding'
 import './design/index.css'
 
@@ -20,7 +21,7 @@ const router = createBrowserRouter([
       { path: 'honours', element: <Holding surface="honours" /> },
       { path: 'survey', element: <Holding surface="survey" /> },
       { path: 'quartermaster', element: <Holding surface="quartermaster" /> },
-      { path: 'plant', element: <Holding surface="standard" /> },
+      { path: 'plant', element: <Plant /> },
       { path: 'standard/:id', element: <StandardDetail /> },
     ],
   },
