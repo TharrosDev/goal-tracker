@@ -56,9 +56,7 @@ export function convertLegacyGoal(legacy: LegacyGoal): MigrationResult {
       deadline: legacy.deadline,
       startDate: created,
       why: '',
-      definitionOfDone: isMoney
-        ? `Reach ${legacy.target ?? 0}.`
-        : 'Marked done in the almanac.',
+      definitionOfDone: isMoney ? `Reach ${legacy.target ?? 0}.` : 'Marked done in the almanac.',
     }),
     id: legacy.id || uid(),
     createdAt: at(created),
@@ -124,17 +122,20 @@ export function convertLegacyPayload(raw: unknown): MigrationResult {
     ? { ok: asArray.data, rejected: [] as MigrationResult['rejected'] }
     : salvage(legacyGoalSchema, raw)
 
-  return ok.reduce<MigrationResult>((acc, legacy) => {
-    const one = convertLegacyGoal(legacy)
-    return {
-      migrated: acc.migrated + 1,
-      rejected: acc.rejected,
-      goals: [...acc.goals, ...one.goals],
-      milestones: acc.milestones,
-      entries: [...acc.entries, ...one.entries],
-      events: [...acc.events, ...one.events],
-    }
-  }, { ...EMPTY, rejected })
+  return ok.reduce<MigrationResult>(
+    (acc, legacy) => {
+      const one = convertLegacyGoal(legacy)
+      return {
+        migrated: acc.migrated + 1,
+        rejected: acc.rejected,
+        goals: [...acc.goals, ...one.goals],
+        milestones: acc.milestones,
+        entries: [...acc.entries, ...one.entries],
+        events: [...acc.events, ...one.events],
+      }
+    },
+    { ...EMPTY, rejected },
+  )
 }
 
 function readLegacyBlob(): { raw: unknown; text: string } | null {
@@ -151,15 +152,19 @@ function readLegacyBlob(): { raw: unknown; text: string } | null {
 /**
  * Runs once, on an empty database, when a v1 blob is present.
  *
- * Idempotent by two independent guards: the `migratedAt` marker, and refusing to
- * run when any goal already exists. Neither guard alone is enough — a person who
- * clears the database but keeps the marker still deserves their data back.
+ * The guard and the insert share ONE transaction, and that is not incidental.
+ * A read-then-write guard with an await between them is a race: two concurrent
+ * boots — which is exactly what a React StrictMode double-mount produces — both
+ * see `migratedAt` unset and both insert. Goals survive it because they carry
+ * their original ids, but ledger entries and events are minted fresh each pass,
+ * so the second run silently doubles the history and leaves every cached total
+ * disagreeing with its ledger.
+ *
+ * IndexedDB serialises readwrite transactions over the same object stores, so
+ * re-checking the guard inside the transaction makes this safe against any
+ * number of concurrent callers.
  */
 export async function migrateLegacy(): Promise<MigrationResult> {
-  const already = await readMeta<string | null>(META_KEYS.migratedAt, null)
-  const existing = await db.goals.count()
-  if (already || existing > 0) return EMPTY
-
   const blob = readLegacyBlob()
   if (!blob) return EMPTY
 
@@ -167,19 +172,23 @@ export async function migrateLegacy(): Promise<MigrationResult> {
   await writeMeta(META_KEYS.legacyBackup, blob.text)
 
   const result = convertLegacyPayload(blob.raw)
-  if (!result.goals.length) {
-    await writeMeta(META_KEYS.migratedAt, new Date().toISOString())
-    return result
-  }
 
+  let applied = false
   await db.transaction('rw', [db.goals, db.entries, db.events, db.meta], async () => {
-    await db.goals.bulkPut(result.goals)
-    await db.entries.bulkPut(result.entries)
-    await db.events.bulkPut(result.events)
+    const already = await readMeta<string | null>(META_KEYS.migratedAt, null)
+    const existing = await db.goals.count()
+    if (already || existing > 0) return
+
+    applied = true
+    if (result.goals.length) {
+      await db.goals.bulkPut(result.goals)
+      await db.entries.bulkPut(result.entries)
+      await db.events.bulkPut(result.events)
+    }
     await writeMeta(META_KEYS.migratedAt, new Date().toISOString())
   })
 
-  return result
+  return applied ? result : EMPTY
 }
 
 /** The kept copy of the original v1 payload, if there is one. */

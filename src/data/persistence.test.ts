@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { convertLegacyGoal, convertLegacyPayload, LEGACY_KEY, migrateLegacy, readLegacyBackup } from './migrations'
+import {
+  convertLegacyGoal,
+  convertLegacyPayload,
+  LEGACY_KEY,
+  migrateLegacy,
+  readLegacyBackup,
+} from './migrations'
 import { collect, parseBackup, restore, serialise } from './backup'
 import { clearRecords, db, listSnapshots, META_KEYS, readMeta, writeMeta } from './db'
 import {
@@ -113,6 +119,24 @@ describe('migrateLegacy', () => {
     expect(await db.goals.count()).toBe(1)
   })
 
+  it('survives two concurrent boots without doubling the ledger', async () => {
+    // A React StrictMode double-mount calls boot twice with no await between
+    // them. Goals carry their original ids so they dedupe on their own; entries
+    // and events are minted fresh each pass, so a racing second run is the one
+    // that silently doubles the history.
+    localStorage.setItem(LEGACY_KEY, JSON.stringify([legacy(), legacy({ id: 'legacy-2' })]))
+
+    const [first, second] = await Promise.all([migrateLegacy(), migrateLegacy()])
+
+    expect(first.migrated + second.migrated).toBe(2)
+    expect(await db.goals.count()).toBe(2)
+    expect(await db.entries.count()).toBe(2)
+
+    const goals = await db.goals.toArray()
+    const entries = await db.entries.toArray()
+    for (const g of goals) expect(recomputeCurrent(g, entries)).toBe(g.current)
+  })
+
   it('refuses to run over a database that already has goals', async () => {
     await createGoal({ kind: 'numeric', title: 'Existing', target: 10 })
     localStorage.setItem(LEGACY_KEY, JSON.stringify([legacy()]))
@@ -142,7 +166,10 @@ describe('migrateLegacy', () => {
 
 describe('export and import', () => {
   it('round-trips a full world exactly', async () => {
-    const { goal } = await createGoal({ kind: 'money', title: 'Bike', target: 2400 }, ['Frame', 'Wheels'])
+    const { goal } = await createGoal({ kind: 'money', title: 'Bike', target: 2400 }, [
+      'Frame',
+      'Wheels',
+    ])
     await logProgress(goal.id, 350)
     await syncAchievements()
 
@@ -232,7 +259,7 @@ describe('repo mutations', () => {
     expect(result.goal.current).toBe(350)
     expect(result.completed).toBe(false)
     expect(result.xp).toBeGreaterThan(0)
-    expect((await db.entries.toArray())).toHaveLength(1)
+    expect(await db.entries.toArray()).toHaveLength(1)
   })
 
   it('completes the goal when the target is reached', async () => {
@@ -248,14 +275,32 @@ describe('repo mutations', () => {
     await logProgress(goal.id, 100)
     const second = await logProgress(goal.id, 50)
     expect(second.completed).toBe(false)
-    expect((await db.events.where('type').equals('completed').count())).toBe(1)
+    expect(await db.events.where('type').equals('completed').count()).toBe(1)
   })
 
   it('crosses value milestones as the number passes them', async () => {
     const { goal } = await createGoal({ kind: 'numeric', title: 'Run', target: 1000, unit: 'km' })
     await db.milestones.bulkPut([
-      { id: 'm1', goalId: goal.id, title: 'First 100', at: 100, dueDate: null, done: false, doneAt: null, order: 0 },
-      { id: 'm2', goalId: goal.id, title: 'Halfway', at: 500, dueDate: null, done: false, doneAt: null, order: 1 },
+      {
+        id: 'm1',
+        goalId: goal.id,
+        title: 'First 100',
+        at: 100,
+        dueDate: null,
+        done: false,
+        doneAt: null,
+        order: 0,
+      },
+      {
+        id: 'm2',
+        goalId: goal.id,
+        title: 'Halfway',
+        at: 500,
+        dueDate: null,
+        done: false,
+        doneAt: null,
+        order: 1,
+      },
     ])
     const result = await logProgress(goal.id, 600)
     expect(result.reached.map((m) => m.id)).toEqual(['m1', 'm2'])
@@ -290,7 +335,12 @@ describe('repo mutations', () => {
 
   it('deletes a goal, detaches its children, and can put it all back', async () => {
     const parent = await createGoal({ kind: 'project', title: 'Business' })
-    const child = await createGoal({ kind: 'money', title: 'Seed', target: 5000, parentId: parent.goal.id })
+    const child = await createGoal({
+      kind: 'money',
+      title: 'Seed',
+      target: 5000,
+      parentId: parent.goal.id,
+    })
     await logProgress(parent.goal.id, 1)
 
     const trash = await deleteGoal(parent.goal.id)

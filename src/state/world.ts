@@ -73,6 +73,15 @@ export interface WorldStore {
   drainUnlocks: () => UnlockedAchievement[]
 }
 
+/**
+ * Boot runs at most once per page load. React StrictMode mounts effects twice in
+ * development, and a second boot would report `migratedCount: 0` over the first
+ * one's real count — so the person who just had data brought across would never
+ * be told. Holding the in-flight promise makes the second call a no-op that
+ * still resolves when the first finishes.
+ */
+let booting: Promise<void> | null = null
+
 export const useWorld = create<WorldStore>((set, get) => {
   /** Pull the whole world back out of the database. Cheap at this scale. */
   const refresh = async () => {
@@ -104,27 +113,30 @@ export const useWorld = create<WorldStore>((set, get) => {
     pendingUnlocks: [],
     lastTrash: null,
 
-    boot: async () => {
-      try {
-        const migration = await migrateLegacy()
-        const [settings, away] = await Promise.all([loadSettings(), repo.daysAway()])
-        await refresh()
-        set({
-          ready: true,
-          settings,
-          awayDays: away,
-          migratedCount: migration.migrated,
-        })
-        // Achievements are re-derived on boot too, so an import or a migration
-        // never leaves somebody holding an unlock they cannot see.
-        const unlocked = await repo.syncAchievements()
-        if (unlocked.length) {
+    boot: () => {
+      booting ??= (async () => {
+        try {
+          const migration = await migrateLegacy()
+          const [settings, away] = await Promise.all([loadSettings(), repo.daysAway()])
           await refresh()
-          set({ pendingUnlocks: unlocked })
+          set({
+            ready: true,
+            settings,
+            awayDays: away,
+            migratedCount: migration.migrated,
+          })
+          // Achievements are re-derived on boot too, so an import or a migration
+          // never leaves somebody holding an unlock they cannot see.
+          const unlocked = await repo.syncAchievements()
+          if (unlocked.length) {
+            await refresh()
+            set({ pendingUnlocks: unlocked })
+          }
+        } catch (e) {
+          set({ ready: true, error: e instanceof Error ? e.message : 'could not open your data' })
         }
-      } catch (e) {
-        set({ ready: true, error: e instanceof Error ? e.message : 'could not open your data' })
-      }
+      })()
+      return booting
     },
 
     refresh,
