@@ -38,7 +38,16 @@ export function useReducedMotion(): boolean {
 }
 
 export const useCoarsePointer = (): boolean => useMedia('(pointer: coarse)')
-export const useNarrow = (): boolean => useMedia('(max-width: 900px)')
+/**
+ * Genuinely phone-sized, not merely "not wide".
+ *
+ * This was 900px, which is a LAYOUT breakpoint — the width at which columns
+ * stack — and using it to swap the rail for a bottom nav meant a 1600x1000
+ * laptop window at devicePixelRatio 2 (800 CSS px) got the phone's chrome. The
+ * rail is the desktop navigation and it stays until there is genuinely no room
+ * for it.
+ */
+export const useNarrow = (): boolean => useMedia('(max-width: 640px)')
 
 export type RenderTier = 'full' | 'reduced' | 'none'
 

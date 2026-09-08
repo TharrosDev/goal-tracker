@@ -137,7 +137,9 @@
   text-transform: uppercase;
 }
 
-@media (max-width: 900px) {
+/* Matches useNarrow(): the nav only exists below this, so the room for it
+   should only be reserved below this. */
+@media (max-width: 640px) {
   .camp__main {
     padding-bottom: var(--bottom-nav);
   }
