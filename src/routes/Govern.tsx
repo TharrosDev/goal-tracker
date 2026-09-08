@@ -138,6 +138,34 @@ export function Govern({ view }: { view: GoalView }) {
             </div>
           )}
 
+          {/* ── what it belongs to ─────────────────────────────────────────── */}
+          {others.length > 0 && (
+            <div className="govern__block">
+              <p className="label">BELONGS TO</p>
+              <div className="govern__row">
+                <select
+                  value={goal.parentId ?? ''}
+                  aria-label="Which standard this one belongs to"
+                  onChange={(e) => void patchGoal(goal.id, { parentId: e.target.value || null })}
+                >
+                  <option value="">Stands on its own</option>
+                  {others
+                    // A standard cannot belong to something that belongs to it.
+                    .filter((o) => o.goal.parentId !== goal.id)
+                    .map((o) => (
+                      <option key={o.goal.id} value={o.goal.id}>
+                        {o.goal.title}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <p className="govern__note">
+                A detachment orbits what it belongs to in the campaign, and is listed under it in
+                the roll. A project's own progress is the share of its gates that have been passed.
+              </p>
+            </div>
+          )}
+
           {/* ── recurrence ────────────────────────────────────────────────── */}
           <div className="govern__block">
             <p className="label">A STANDING COMMITMENT</p>
