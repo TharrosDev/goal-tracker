@@ -42,6 +42,12 @@ export interface WorldStore {
 
   /** Achievements unlocked since the last time the UI drained this. */
   pendingUnlocks: UnlockedAchievement[]
+  /**
+   * What just happened, for the ceremony host to honour. Set by every mutation
+   * that earns a ceremony and cleared when it has been shown — the store decides
+   * WHAT happened, the shell decides how loudly to say so.
+   */
+  ceremony: CeremonyCue | null
   /** The last destructive action, held for undo. */
   lastTrash: Trash | null
 
@@ -71,6 +77,22 @@ export interface WorldStore {
   importBackup: (file: File) => Promise<ImportReport>
 
   drainUnlocks: () => UnlockedAchievement[]
+  clearCeremony: () => void
+}
+
+/** The four tiers, from a tap of feedback to the fall of a castle. */
+export type CeremonyTier = 'dispatch' | 'gate' | 'taken' | 'siege'
+
+export interface CeremonyCue {
+  tier: CeremonyTier
+  goalId: string
+  merit: number
+  /** Gates crossed by the same dispatch that triggered this. */
+  gates: string[]
+  record: boolean
+  recovery: boolean
+  /** Bumps on every cue so a repeat of the same event still fires. */
+  seq: number
 }
 
 /**
@@ -111,6 +133,7 @@ export const useWorld = create<WorldStore>((set, get) => {
     migratedCount: 0,
     awayDays: null,
     pendingUnlocks: [],
+    ceremony: null,
     lastTrash: null,
 
     boot: () => {
@@ -150,6 +173,29 @@ export const useWorld = create<WorldStore>((set, get) => {
     logProgress: async (goalId, amount, options) => {
       const result = await repo.logProgress(goalId, amount, options)
       await after()
+
+      // The tier is decided here, from what actually happened, so the shell
+      // never has to work out how big a thing this was.
+      const boss = result.goal.boss
+      const tier: CeremonyTier = result.completed
+        ? boss
+          ? 'siege'
+          : 'taken'
+        : result.reached.length
+          ? 'gate'
+          : 'dispatch'
+
+      set({
+        ceremony: {
+          tier,
+          goalId,
+          merit: result.xp,
+          gates: result.reached.map((m) => m.title),
+          record: result.record,
+          recovery: result.recovery,
+          seq: (get().ceremony?.seq ?? 0) + 1,
+        },
+      })
       return result
     },
 
@@ -164,8 +210,20 @@ export const useWorld = create<WorldStore>((set, get) => {
     },
 
     completeGoal: async (id) => {
-      await repo.completeGoal(id)
+      const result = await repo.completeGoal(id)
       await after()
+      if (result)
+        set({
+          ceremony: {
+            tier: result.goal.boss ? 'siege' : 'taken',
+            goalId: id,
+            merit: result.xp,
+            gates: [],
+            record: false,
+            recovery: false,
+            seq: (get().ceremony?.seq ?? 0) + 1,
+          },
+        })
     },
 
     reopenGoal: async (id) => {
@@ -193,8 +251,20 @@ export const useWorld = create<WorldStore>((set, get) => {
     },
 
     setMilestoneDone: async (id, done) => {
-      await repo.setMilestoneDone(id, done)
+      const m = await repo.setMilestoneDone(id, done)
       await after()
+      if (m && done)
+        set({
+          ceremony: {
+            tier: 'gate',
+            goalId: m.goalId,
+            merit: 0,
+            gates: [m.title],
+            record: false,
+            recovery: false,
+            seq: (get().ceremony?.seq ?? 0) + 1,
+          },
+        })
     },
 
     removeMilestone: async (id) => {
@@ -224,6 +294,8 @@ export const useWorld = create<WorldStore>((set, get) => {
       await refresh()
       return report
     },
+
+    clearCeremony: () => set({ ceremony: null }),
 
     drainUnlocks: () => {
       const pending = get().pendingUnlocks

@@ -5,6 +5,7 @@ import { useApplyWorld, useNarrow } from './prefs'
 import { useHotkeys, type Binding } from './hotkeys'
 import { Palette } from './Palette'
 import { Dispatch } from './Dispatch'
+import { Ceremony } from './Ceremony'
 import './shell.css'
 
 /**
@@ -114,6 +115,7 @@ export function AppShell() {
 
       <Palette open={overlay === 'palette'} onClose={close} />
       <Dispatch open={overlay === 'dispatch'} onClose={close} onLogged={() => {}} />
+      <Ceremony />
 
       {narrow && (
         <nav className="tabs" aria-label="Camp">

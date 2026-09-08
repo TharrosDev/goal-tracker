@@ -1,0 +1,294 @@
+/*
+ * THE SEALING. Four tiers.
+ *
+ * The two small ones never block anything: they are a reading of what just
+ * happened, printed in the corner, and the person can keep working through them.
+ * The two large ones take the screen, and both are skippable with any key.
+ */
+
+/* ── dispatch and gate ──────────────────────────────────────────────────── */
+
+.sealing {
+  position: fixed;
+  left: var(--s4);
+  bottom: var(--s4);
+  z-index: var(--z-ceremony);
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s5, var(--s4));
+  background: var(--ground-raised);
+  border-left: 2px solid var(--accent);
+  pointer-events: none;
+  animation: sealing-in 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sealing-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.sealing__mark {
+  font-family: 'Marks', serif;
+  font-size: 20px;
+  color: var(--accent);
+}
+
+.sealing__line {
+  font-size: var(--t-body);
+  color: var(--ink);
+}
+
+.sealing__merit {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--merit);
+}
+
+.sealing--gate {
+  border-left-color: var(--ok);
+}
+.sealing--gate .sealing__mark {
+  color: var(--ok);
+}
+
+/* ── taken, and the fall ────────────────────────────────────────────────── */
+
+.fall {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-ceremony);
+  display: grid;
+  place-items: center;
+  /* The camp goes quiet. Backdrop-filter is affordable here because this is a
+     one-shot overlay over a static page, not a per-frame cost on a moving one. */
+  background: var(--ground-scrim);
+  backdrop-filter: blur(10px) saturate(0.4);
+  padding: var(--s6);
+  animation: fall-in 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fall-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.fall__inner {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--s4);
+  text-align: center;
+  max-width: min(920px, 100%);
+}
+
+.fall__crest {
+  animation: crest-strike 620ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes crest-strike {
+  from {
+    transform: scale(0.3) rotate(-14deg);
+    opacity: 0;
+  }
+}
+
+.fall__kicker {
+  color: var(--accent);
+}
+
+/*
+ * The title takes the screen and is allowed to be cropped by it: this is the one
+ * moment in the product where type is the event rather than a label on it.
+ */
+.fall__title {
+  color: var(--ink);
+  line-height: 0.82;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  /* .mega sets scale and weight but not case — the display classes do that, and
+     this is display type. */
+  text-transform: uppercase;
+}
+
+/*
+ * The siege title is solid --accent, not gold leaf.
+ *
+ * Gold leaf is a real material in this design and this is the one moment it is
+ * meant for — but painted into TEXT its dark stops (#8a6216) compute to about
+ * 3.5:1 on the scrim, under the 4.5:1 floor that section 4.1 makes binding, and
+ * a gradient's contrast cannot be measured or asserted anyway. So the leaf goes
+ * on the rule beneath the title, where it is a surface, and the largest text in
+ * the product stays a colour the contrast test can check.
+ */
+.fall--siege .fall__title {
+  color: var(--accent);
+}
+
+.fall--siege .fall__title::after {
+  content: '';
+  display: block;
+  height: 6px;
+  margin-top: var(--s3);
+  background: linear-gradient(
+    104deg,
+    #8a6216,
+    #e8c46a 38%,
+    #fff0c2 46%,
+    var(--accent) 58%,
+    #8a6216
+  );
+}
+
+.fall__tally {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s8);
+  border-top: var(--hair) solid var(--rule);
+  border-bottom: var(--hair) solid var(--rule);
+  padding: var(--s3) 0;
+}
+
+.fall__tally dd {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.fall__merit {
+  color: var(--merit);
+}
+
+/* The standard's own chronicle, lighting up beat by beat behind the tally. */
+.fall__story {
+  display: grid;
+  gap: 2px;
+  max-width: 46ch;
+}
+
+.fall__story li {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: var(--s3);
+  text-align: left;
+  font-size: var(--t-label-lg);
+  color: var(--ink-faint);
+  opacity: 0.25;
+  transition: opacity 220ms ease-out;
+}
+
+.fall__story li.is-lit {
+  opacity: 1;
+  color: var(--ink-dim);
+}
+
+.fall__honours {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s4);
+  justify-content: center;
+}
+
+.fall__honours li {
+  display: grid;
+  gap: 2px;
+  padding: var(--s2) var(--s4);
+  border: var(--hair) solid var(--accent);
+}
+
+.fall__honour {
+  font-family: var(--font-display);
+  font-size: var(--t-body-lg);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.fall__skip {
+  color: var(--ink-faint);
+  min-height: var(--tap);
+}
+
+/* ── the castle ─────────────────────────────────────────────────────────── */
+
+.fall__castle {
+  width: min(420px, 80vw);
+  height: auto;
+}
+
+.castle__tier {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: castle-draw 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--delay);
+  transform-origin: center bottom;
+}
+
+@keyframes castle-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* A tier that has fallen. It breaks and drops rather than fading out. */
+.castle__tier.is-fallen {
+  animation:
+    castle-draw 1ms forwards,
+    castle-break 620ms cubic-bezier(0.55, 0, 1, 0.45) forwards;
+  animation-delay: 0ms;
+}
+
+@keyframes castle-break {
+  to {
+    transform: translateY(26px) rotate(4deg);
+    opacity: 0;
+    stroke: var(--caution);
+  }
+}
+
+/*
+ * STILL AIR. Not the ceremony with the motion deleted — the same eight beats as
+ * eight stills, so it reads as a printed record of the victory rather than a
+ * film of one. Nothing is lost; the pacing changes.
+ */
+.fall--still .fall__crest,
+.fall--still .castle__tier {
+  animation: none;
+}
+
+.fall--still .castle__tier {
+  stroke-dashoffset: 0;
+}
+
+.fall--still .castle__tier.is-fallen {
+  opacity: 0.18;
+  stroke: var(--caution);
+}
+
+.fall--still .fall__story li {
+  transition: none;
+}
+
+@media (max-width: 900px) {
+  .fall__tally {
+    gap: var(--s4);
+  }
+  .fall__story li {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .sealing {
+    left: var(--s2);
+    right: var(--s2);
+    bottom: calc(var(--bottom-nav) + var(--s2));
+  }
+}
