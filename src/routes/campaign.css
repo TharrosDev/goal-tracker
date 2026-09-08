@@ -1,0 +1,182 @@
+/* THE CAMPAIGN. */
+.campaign {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--s4);
+  gap: var(--s3);
+}
+
+.campaign__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--s4);
+  flex-wrap: wrap;
+}
+
+.campaign__count {
+  font-size: var(--t-label-lg);
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+}
+
+.campaign__views {
+  display: flex;
+  gap: 0;
+}
+
+.campaign__views button {
+  min-height: var(--tap);
+  padding: 0 var(--s4);
+  border: var(--hair) solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-faint);
+}
+
+.campaign__views button[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.campaign__views button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.campaign__why {
+  color: var(--ink-faint);
+  line-height: 1.6;
+}
+
+.campaign__why button {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font: inherit;
+}
+
+.campaign__body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.campaign__roll {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.campaign__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+}
+
+/* A name floating in the scene. Kept crisp as HTML rather than a texture. */
+.camp3d__label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-variation-settings: 'wdth' 76;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow:
+    0 0 3px var(--ground),
+    0 0 6px var(--ground);
+}
+
+.camp3d__label.is-selected {
+  color: var(--accent);
+}
+
+/*
+ * What is selected. Anchored to the corner of the field rather than floating
+ * over it, so it never covers the thing it describes.
+ */
+.campaign__chosen {
+  position: absolute;
+  left: var(--s4);
+  bottom: var(--s4);
+  display: grid;
+  gap: var(--s1);
+  padding: var(--s3) var(--s4);
+  border-left: 2px solid var(--accent);
+  background: var(--ground-scrim);
+  max-width: 320px;
+}
+
+.campaign__chosen-title {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1.05;
+}
+
+.campaign__chosen button {
+  justify-self: start;
+  min-height: var(--tap);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--accent);
+}
+
+.campaign__reset {
+  position: absolute;
+  right: var(--s4);
+  bottom: var(--s4);
+  color: var(--ink-faint);
+}
+
+.campaign--empty {
+  align-content: center;
+  justify-content: center;
+  display: grid;
+  gap: var(--s4);
+  max-width: 62ch;
+  padding: var(--s8);
+}
+
+.campaign__mark {
+  font-family: 'Marks', serif;
+  font-size: clamp(56px, 10vw, 120px);
+  line-height: 1;
+  color: var(--rule-strong);
+}
+
+.campaign__plant {
+  justify-self: start;
+  min-height: var(--tap);
+  padding: var(--s3) var(--s6);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .campaign__chosen {
+    left: var(--s2);
+    right: var(--s2);
+    bottom: var(--s2);
+    max-width: none;
+  }
+  .campaign__reset {
+    display: none;
+  }
+}

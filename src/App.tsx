@@ -5,6 +5,7 @@ import { AppShell } from '@/shell/AppShell'
 import { WarTable } from '@/routes/WarTable'
 import { StandardDetail } from '@/routes/StandardDetail'
 import { Plant } from '@/routes/Plant'
+import { Campaign } from '@/routes/Campaign'
 import { Holding } from '@/routes/Holding'
 import './design/index.css'
 
@@ -14,7 +15,7 @@ const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       { index: true, element: <WarTable /> },
-      { path: 'campaign', element: <Holding surface="campaign" /> },
+      { path: 'campaign', element: <Campaign /> },
       { path: 'dojo', element: <Holding surface="dojo" /> },
       { path: 'shrine', element: <Holding surface="shrine" /> },
       { path: 'chronicle', element: <Holding surface="chronicle" /> },

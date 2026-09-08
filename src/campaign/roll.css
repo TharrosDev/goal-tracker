@@ -1,0 +1,71 @@
+/* THE ROLL — the campaign as a muster roll. A peer of the scene, not a fallback. */
+.roll {
+  display: grid;
+  border-top: var(--hair) solid var(--rule);
+}
+
+.roll__row {
+  width: 100%;
+  min-height: var(--tap);
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 7rem 10rem 8rem;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) 0;
+  border-bottom: var(--hair) solid var(--rule-hair);
+  text-align: left;
+}
+
+.roll__row.is-selected .roll__title {
+  color: var(--accent);
+}
+
+.roll__title {
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roll__figure {
+  font-size: var(--t-label-lg);
+  color: var(--ink-dim);
+}
+
+.roll__hour,
+.roll__state {
+  color: var(--ink-faint);
+}
+
+.roll__allies {
+  padding: 0 0 var(--s2) calc(26px + var(--s3));
+  color: var(--ink-faint);
+}
+
+/* Detachments are indented under what they belong to — the tie is the layout. */
+.roll__detachments {
+  padding-left: var(--s6);
+  border-left: var(--hair) solid var(--rule);
+  margin-left: 12px;
+}
+
+.roll__empty {
+  padding: var(--s8) 0;
+}
+
+@media (max-width: 900px) {
+  .roll__row {
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+    row-gap: 2px;
+  }
+  .roll__state {
+    display: none;
+  }
+  .roll__hour {
+    grid-column: 2 / -1;
+  }
+}
