@@ -318,31 +318,53 @@ Progress and state modify the crest, never replace it:
 
 ### 7.3 Kanji marks
 
-Kanji are drawn as SVG paths in `src/design/marks.ts`, not set in a font. There are twenty-two of them
-(§2 plus the six state words); a CJK webfont is megabytes for twenty-two glyphs. Each is a `<path>` in
-a 100×100 box with `aria-hidden="true"`, and every appearance is inside a component that also renders
-the English word. **A mark alone is never a label, a button, or a status.**
+The product uses **27 kanji**, listed in `src/design/marks.ts`. They are set in a subset of Noto
+Serif JP — Mincho, so they read as carved and stamped rather than typed — cut to exactly those 27
+glyphs by `scripts/subset-marks.mjs`. The full face is 1.38MB; the subset is **6.8KB**, ships in the
+bundle, and works offline.
 
----
+An earlier draft called for drawing each kanji as an SVG path to avoid the font weight. That was the
+wrong trade: 7KB is not worth twenty-seven hand-drawn approximations of characters that have correct
+forms. The subset script reads the glyph list out of the registry, so the font and the code cannot
+drift.
+
+Every mark is rendered by `<Mark>`, which emits the kanji `aria-hidden="true"` alongside its English
+string. **A mark alone is never a label, a button, an accessible name, or a status.** Deleting every
+mark from the product must leave it fully operable and fully understood.
 
 ## 8. THE WAR TABLE
 
 ### 8.1 The coordinate system
 
-The field is one `position: relative` element that fills the viewport below the rail. It has:
+The field is one element filling the viewport below the rail.
 
-- **X — the hour.** `x = daysUntil(deadline) / horizonDays`, with `today` at the left edge and the
-  horizon at the right. `horizonDays` is the furthest live deadline rounded up to 30/90/180/365, shown
-  on a scale bar along the top with day-marks in `--rule-hair` and month labels in `--ink-faint`.
-- **Y — the ground.** A standard's cloth rises from a ground line at 88% of the field height. Cloth
-  height `= fraction * (groundY - 64px)`. Full height means finished.
-- **THE LINE.** One 1px `--rule-strong` diagonal from (left edge, groundY) to (right edge, top): where
-  a standard _should_ stand for its hour. A standard whose cloth top falls below the line is behind by
-  a distance you can see. Behind by more than `BEHIND` (ten points), the gap between cloth-top and line
-  is hatched at 6px in `--caution` at 0.5 — the only place the field goes red.
-- **THE RESERVE.** Standards with no deadline have no x. They are planted in a band along the bottom
-  of the field, below the ground line, ordered by weight. They are not lesser; they are simply not on
-  a clock, and the reserve is where an army keeps what it has not yet committed.
+- **X — elapsed span.** A standard's horizontal position is how far it is through
+  **its own** span: 0 the day it was planted, 1 at its hour. Standards drift rightward on their own
+  as time passes and reach the right edge at their hour. The field is a race toward that edge.
+- **Y — the ground.** Cloth rises from a ground line at 88% of the field height (`--ground-line`).
+  Height is `fraction` of the usable space. Full height means finished.
+- **THE LINE.** One 1px `--rule-strong` diagonal from (left edge, ground) to (right edge, top).
+
+**Why X is elapsed span and not days-until-the-hour.** Because it makes the line *exact*. At
+horizontal position x the expected progress is exactly x, so a standard sitting on the line is
+precisely on pace, one above it is ahead, and the vertical gap below it **is `paceGap`, to the pixel,
+for every goal regardless of span**. Plotting absolute days against a shared horizon reads well but
+the diagonal is then only correct for goals whose whole span happens to equal the horizon — the most
+prominent element in the product would have been an approximation dressed as a measurement.
+`src/field/layout.test.ts` asserts the equivalence for a ten-day span and a ten-year one.
+
+Absolute time is not lost: every standard carries its own arrival text (`12 DAYS`, `3 DAYS PAST THE
+HOUR`), which is where a date actually belongs.
+
+- **Behind.** When `paceGap > BEHIND` — the inherited ten-point threshold — the gap between cloth top
+  and line is hatched at 6px in `--caution` at 0.5 alpha. That is the only place the field goes red,
+  and it reports a distance, never a judgement.
+- **THE RESERVE.** Standards with no hour have no x. They are planted in a band below the ground
+  line, heaviest first. Not lesser; simply not on a clock, which is where an army keeps what it has
+  not yet committed.
+- **Displacement is reported, never hidden.** When standards crowd the same position they are nudged
+  apart to stay legible, but each keeps its true datum (`centre`), and the tick on the scale bar is
+  drawn from the datum rather than from where the cloth had to be moved.
 
 Everything else on the war table is a position, a height, or a force in that one space. There is no
 panel to delete.
@@ -363,7 +385,7 @@ panel to delete.
 
 ```
 ┌ 64px rail ┬──────────────────────────────────────────────────────────────────┐
-│  陣 WAR   │  30 SEP        OCT           NOV           DEC          horizon  │
+│  陣 WAR   │ PLANTED                ELAPSED SPAN                  THE HOUR  │
 │  戦 CAMP  │ ·│···│···│···│···│···│···│···│···│···│···│···│···│···│···│···│··  │  scale
 │  道 DOJO  │                                                                  │
 │  社 SHRI  │   74          ╲                                        位 RANK   │

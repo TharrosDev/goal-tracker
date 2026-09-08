@@ -1,0 +1,144 @@
+/* THE CAMP — the shell. */
+.camp {
+  display: flex;
+  height: 100%;
+  position: relative;
+}
+
+.camp__main {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: var(--z-content);
+  overflow: hidden;
+}
+
+/* ── the rail ───────────────────────────────────────────────────────────── */
+
+.rail {
+  position: relative;
+  z-index: var(--z-chrome);
+  width: var(--rail);
+  flex: none;
+  border-right: var(--hair) solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-block: var(--s3);
+}
+
+.rail ul {
+  display: flex;
+  flex-direction: column;
+}
+
+.rail__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s3) 0;
+  min-height: var(--tap);
+  color: var(--ink-faint);
+  text-decoration: none;
+}
+
+.rail__link:hover {
+  color: var(--ink-dim);
+}
+
+.rail__link.active {
+  color: var(--accent);
+}
+
+/* A hairline that marks the current destination without moving the layout. */
+.rail__link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 2px;
+  height: 28px;
+  background: var(--accent);
+  transform: translateY(6px);
+}
+
+.rail__mark {
+  font-family: 'Marks', serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1;
+}
+
+/*
+ * The one vertical setting in the product. Single short words, upright, at
+ * 20px — the floor below which rotated Latin stops being readable.
+ */
+/*
+ * The one vertical setting in the product. Upright Latin costs roughly one em of
+ * column height per glyph — line-height does NOT compress that, it sets the
+ * column's width — so this is capped at a single short word and forbidden from
+ * wrapping. A second column interleaves the letters into nonsense.
+ */
+.rail__name {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.rail__link--foot {
+  padding-bottom: 0;
+}
+
+/* ── the phone's tabs ───────────────────────────────────────────────────── */
+
+.tabs {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: var(--z-chrome);
+  height: var(--bottom-nav);
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: var(--ground);
+  border-top: var(--hair) solid var(--rule);
+}
+
+.tabs__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--tap);
+  color: var(--ink-faint);
+  text-decoration: none;
+}
+
+.tabs__link.active {
+  color: var(--accent);
+}
+
+.tabs__mark {
+  font-family: 'Marks', serif;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.tabs__name {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .camp__main {
+    padding-bottom: var(--bottom-nav);
+  }
+}

@@ -47,9 +47,12 @@ export function rng(seed: string) {
  */
 export const DYE_COUNT = 6
 
-export function dyeOf(goal: Pick<Goal, 'dye' | 'kind' | 'category'>): number {
+export function dyeOf(goal: Pick<Goal, 'id' | 'dye' | 'category'>): number {
   if (goal.dye !== null) return goal.dye
-  return hash(goal.category ?? goal.kind) % DYE_COUNT
+  // Category groups: two goals in SAVINGS fly the same dye, the way a unit
+  // shared its lacing. Without one, the goal's own id varies it — falling back
+  // to `kind` made a field of money goals monochrome, which is no identity at all.
+  return hash(goal.category ?? goal.id) % DYE_COUNT
 }
 
 export interface Sigil {

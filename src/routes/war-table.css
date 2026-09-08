@@ -1,0 +1,142 @@
+/*
+ * THE WAR TABLE. The wind overlaps the scale, rank sits in the margin, and the
+ * field is the space they live in — none of these is a panel.
+ */
+.war {
+  position: relative;
+  z-index: var(--z-content);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--s4) var(--s6) var(--s4) var(--s4);
+}
+
+/*
+ * THE WIND. Overlaps the field's scale rather than sitting above it in its own
+ * row: the numeral is in the space, not in a box beside it.
+ */
+/*
+ * THE WIND. It overlaps the field's scale rather than sitting in a row above it,
+ * but only by its descender — the read-out below it keeps its own line, because
+ * a numeral and its reading colliding is not composition, it is a bug.
+ */
+.war__wind {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: var(--s2);
+  justify-items: start;
+  margin-bottom: calc(var(--s4) * -1);
+  pointer-events: none;
+}
+
+.war__wind-read {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+}
+
+/* The numeral's own line-height is 0.78, so it needs the space given back. */
+.numeral--mega {
+  display: block;
+  padding-top: 0.06em;
+}
+
+.war__rank {
+  position: absolute;
+  top: var(--s4);
+  right: var(--s4);
+  display: grid;
+  justify-items: end;
+  gap: var(--s1);
+  z-index: 3;
+}
+
+.war__rank-title {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.war__rank-level {
+  font-size: var(--t-label-lg);
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+/* Merit, as a rule that fills. Gold leaf — there is no purple. */
+.war__merit {
+  display: block;
+  width: 96px;
+  height: 2px;
+  background: var(--rule);
+  position: relative;
+}
+.war__merit::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--f) * 100%);
+  background: var(--merit);
+}
+
+/* THE ORDER OF THE DAY. Plain sentences, not statistics. */
+.war__order {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s6);
+  padding-top: var(--s3);
+  border-top: var(--hair) solid var(--rule);
+  font-size: var(--t-body);
+  color: var(--ink-dim);
+}
+.war__order b {
+  color: var(--ink);
+  font-weight: 700;
+}
+.war__order .is-urgent b {
+  color: var(--caution);
+}
+
+/* ── the empty field ────────────────────────────────────────────────────── */
+
+.war--empty {
+  justify-content: center;
+  gap: var(--s6);
+  max-width: 62ch;
+}
+
+.war__empty-title {
+  color: var(--ink);
+}
+
+.war__plant {
+  justify-self: start;
+  align-self: start;
+  min-height: var(--tap);
+  padding: var(--s3) var(--s6);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .war {
+    padding: var(--s3);
+  }
+  .war__rank {
+    position: static;
+    justify-items: start;
+    grid-auto-flow: column;
+    align-items: baseline;
+    gap: var(--s3);
+  }
+}

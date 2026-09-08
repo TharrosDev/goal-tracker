@@ -172,3 +172,16 @@ ol {
 *::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* The one state before the router exists. */
+.boot-error {
+  display: grid;
+  align-content: center;
+  gap: var(--s3);
+  padding: var(--s8);
+  max-width: 62ch;
+  min-height: 100%;
+}
+.boot-error .label {
+  color: var(--caution);
+}

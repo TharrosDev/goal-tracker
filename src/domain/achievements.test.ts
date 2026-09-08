@@ -191,10 +191,13 @@ describe('procedural identity', () => {
     )
   })
 
-  it('falls back to the kind when there is no category', () => {
-    expect(dyeOf(goal({ id: 'a', kind: 'money', category: null }))).toBe(
-      dyeOf(goal({ id: 'zzz', kind: 'money', category: null })),
+  it('varies by goal when there is no category, rather than collapsing by kind', () => {
+    // Every migrated goal arrives without a category. Keying the fallback on
+    // kind made a whole field of money goals fly one colour.
+    const dyes = Array.from({ length: 30 }, (_, i) =>
+      dyeOf(goal({ id: `m${i}`, kind: 'money', category: null })),
     )
+    expect(new Set(dyes).size).toBeGreaterThan(1)
   })
 
   it('respects an explicit dye over the derived one', () => {

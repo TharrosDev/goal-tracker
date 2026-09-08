@@ -5,3 +5,15 @@
 @import './tokens.css';
 @import './type.css';
 @import './base.css';
+
+/*
+ * The marks. 27 kanji subset out of Noto Serif JP by scripts/subset-marks.mjs —
+ * Mincho, so they read as carved rather than typed. 6.8KB, offline, in-bundle.
+ */
+@font-face {
+  font-family: 'Marks';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('./fonts/marks-600.woff2') format('woff2');
+}

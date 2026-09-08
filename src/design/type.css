@@ -28,7 +28,9 @@
 
   /* Display. These exist to dominate a viewport, not to label a section. */
   --t-display: clamp(3rem, 0.5rem + 11vw, 9rem);
-  --t-mega: clamp(4.5rem, -1rem + 24vw, 20rem);
+  /* Sized against the SHORTER axis too: keyed to width alone, one number on a
+     wide, short window grows until there is no room left for the field. */
+  --t-mega: clamp(4rem, min(20vw, 26vh), 16rem);
 
   --lh-tight: 0.86;
   --lh-snug: 1.06;

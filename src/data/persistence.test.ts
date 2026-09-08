@@ -307,6 +307,26 @@ describe('repo mutations', () => {
     expect((await db.milestones.get('m1'))!.done).toBe(true)
   })
 
+  it('stamps every event with the dispatch instant, not with now', async () => {
+    // A backdated dispatch whose events say "now" makes the timeline disagree
+    // with the ledger, and momentum, the chronicle and every streak fold over
+    // the wrong day.
+    const { goal } = await createGoal({ kind: 'money', title: 'Bike', target: 2400 })
+    const when = '2026-03-04T09:30:00.000Z'
+    const result = await logProgress(goal.id, 120, { at: when })
+
+    expect(result.entry.at).toBe(when)
+    for (const e of result.events) expect(e.at).toBe(when)
+  })
+
+  it('dates a completion at the dispatch that finished it', async () => {
+    const { goal } = await createGoal({ kind: 'money', title: 'Bike', target: 100 })
+    const when = '2026-03-04T09:30:00.000Z'
+    const result = await logProgress(goal.id, 100, { at: when })
+    expect(result.completed).toBe(true)
+    expect(result.goal.completedAt).toBe(when)
+  })
+
   it('undoes an entry and rolls the total back with it', async () => {
     const { goal } = await createGoal({ kind: 'money', title: 'Bike', target: 2400 })
     await logProgress(goal.id, 100)

@@ -57,12 +57,12 @@
   --state-completed: #f2ede1;
 
   /* ── the six dyes. Identity, never state. DESIGN.md 4.4. ───────────────── */
-  --dye-1: #6f93b8; /* ai */
-  --dye-2: #9db4cc; /* usu-ai */
-  --dye-3: #5da3a3; /* ai-midori */
-  --dye-4: #9188bd; /* ai-murasaki */
-  --dye-5: #5e93b5; /* hanada */
-  --dye-6: #b3c3d4; /* shira-ai */
+  --dye-1: #4a7fc1; /* ai */
+  --dye-2: #6e9bd6; /* usu-ai */
+  --dye-3: #3f9e9e; /* ai-midori */
+  --dye-4: #7c6fd0; /* ai-murasaki */
+  --dye-5: #4c8fd4; /* hanada */
+  --dye-6: #93b4de; /* shira-ai */
 
   /* ── derived surfaces ──────────────────────────────────────────────────── */
   --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 34%, transparent);

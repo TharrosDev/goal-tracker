@@ -1,0 +1,34 @@
+/* A kanji mark and its English string. See DESIGN.md 14.1. */
+.mark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+
+.mark--below {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.mark__glyph {
+  font-family: 'Marks', serif;
+  font-weight: 600;
+  /* Kanji carry more strokes in the same box than Latin, so they need a little
+     more size to sit at the same optical weight as the label beside them. */
+  font-size: 1.35em;
+  line-height: 1;
+  color: var(--accent);
+  /* The mark is a stamp, not a word: it never wraps, never selects. */
+  white-space: nowrap;
+  user-select: none;
+}
+
+.mark__name {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}

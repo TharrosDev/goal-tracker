@@ -1,0 +1,331 @@
+/*
+ * THE FIELD. One continuous space — see DESIGN.md 8.
+ *
+ * Note what is absent: there is no container, no card, no panel and no gap that
+ * exists to separate one thing from another. Every box below is a position in a
+ * coordinate system, and deleting any of them breaks a spatial relationship.
+ */
+
+/*
+ * Every layer is absolutely positioned in the SAME box, so the SVG rules, the
+ * standards and the bands below all share one coordinate space. They were a flex
+ * column before, which gave the plot a different height from the one the layout
+ * measured — and the standards floated a hundred pixels above their own ground.
+ */
+.field {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── the scale ──────────────────────────────────────────────────────────── */
+
+.field__scale {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: var(--s6) var(--s4) var(--s2);
+  border-bottom: var(--hair) solid var(--rule);
+  pointer-events: none;
+}
+
+.field__scale-mid {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink-faint);
+}
+
+/*
+ * A standard's true position, drawn from its datum rather than from where the
+ * cloth had to be nudged to stay legible. Displacement is reported, never hidden.
+ */
+.field__datum {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 6px;
+  background: var(--accent);
+  transform: translateX(-0.5px);
+}
+
+/* ── the rules: the line and the ground ─────────────────────────────────── */
+
+.field__rules {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── the standards ──────────────────────────────────────────────────────── */
+
+/*
+ * The plot. Its height IS the ground line, set inline from the same layout the
+ * SVG rules are drawn from, so a standard's bottom edge and the drawn ground are
+ * the same pixel.
+ */
+.field__standards {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 2;
+}
+
+.standard {
+  position: absolute;
+  bottom: 0;
+  left: var(--x);
+  width: var(--w);
+  height: 100%;
+  cursor: pointer;
+}
+
+.standard:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+ * The pole. Thickness is priority — how firmly the standard is planted — and it
+ * stands a little proud of its own cloth, the way a nobori's does. It is not a
+ * full-height rule: that read as a chart gridline.
+ */
+.standard__pole {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--pole);
+  height: calc(var(--h) + 22px);
+  min-height: 34px;
+  background: var(--rule-strong);
+}
+
+/* The finial: an iron cap, so the pole ends rather than just stopping. */
+.standard__pole::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(var(--pole) * -1);
+  width: calc(var(--pole) * 3);
+  height: 3px;
+  background: var(--rule-strong);
+}
+
+/* A gate on the pole. Brass when passed, hollow when not. */
+.standard__gate {
+  position: absolute;
+  left: 0;
+  width: 9px;
+  height: 2px;
+  background: var(--rule);
+}
+.standard__gate.is-passed {
+  background: var(--accent);
+  width: 13px;
+}
+
+/*
+ * The cloth. Height is progress; the top edge carries state as FORM, which is
+ * what makes every state legible in KURO with no colour to spend.
+ */
+.standard__cloth {
+  position: absolute;
+  bottom: 0;
+  left: var(--pole);
+  right: 0;
+  height: var(--h);
+  background: var(--dye);
+  border-top: 2px solid var(--state-active);
+  overflow: hidden;
+}
+
+.standard--new .standard__cloth {
+  border-top-style: dashed;
+  border-top-color: var(--state-new);
+}
+
+/* CRITICAL doubles the edge rather than only reddening it. */
+.standard--critical .standard__cloth {
+  border-top-color: var(--state-critical);
+  box-shadow: 0 -5px 0 -2px var(--state-critical);
+}
+
+.standard--stalled .standard__cloth {
+  filter: saturate(0);
+  border-top-color: var(--state-stalled);
+}
+.standard--stalled .standard__pole {
+  width: 1px;
+}
+
+/* STRUCK: the cloth is taken down, leaving the pole and the empty lacing. */
+.standard--paused .standard__cloth {
+  background: none;
+  border-top-color: var(--state-paused);
+  border-top-style: dotted;
+}
+
+.standard--completed .standard__cloth {
+  background: linear-gradient(
+    104deg,
+    #8a6216,
+    #e8c46a 38%,
+    #fff0c2 46%,
+    var(--accent) 55%,
+    #8a6216
+  );
+  border-top-color: var(--state-completed);
+}
+
+/*
+ * Katazome — a stencil cut from the dye, so two standards in the same colour are
+ * still different cloth. Angle, period and weight come from the goal's sigil.
+ *
+ * Deliberately NOT an orthogonal grid: a fixed square lattice reads as graph
+ * paper, which is the decorative-grid pattern this product forbids. A stencil
+ * runs at its own angle, the way a cut one does.
+ */
+.standard__stencil {
+  position: absolute;
+  inset: 0;
+  opacity: 0.42;
+  background-image: repeating-linear-gradient(
+    var(--stencil-angle),
+    rgba(0, 0, 0, 0.28) 0 var(--stencil-weight),
+    transparent var(--stencil-weight) var(--stencil-period)
+  );
+}
+
+/*
+ * The figure, set above the cloth's head on the ground itself. It was printed
+ * inside the cloth, which clips it to nothing on a standard at three per cent —
+ * and made its contrast depend on whichever dye happened to be underneath.
+ */
+.standard__figure {
+  position: absolute;
+  left: calc(var(--pole) + var(--s1));
+  bottom: calc(var(--h) + 6px);
+  font-size: var(--t-label-lg);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.standard--stalled .standard__figure,
+.standard--paused .standard__figure {
+  color: var(--ink-faint);
+}
+
+/*
+ * The shortfall. Hatching between the cloth top and the line — the one place the
+ * field goes red, and it measures a distance rather than passing a judgement.
+ */
+.standard__shortfall {
+  position: absolute;
+  left: var(--pole);
+  right: 0;
+  bottom: var(--h);
+  height: var(--behind);
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--caution) 50%, transparent) 0 2px,
+    transparent 2px 6px
+  );
+  border-top: 1px solid color-mix(in oklab, var(--caution) 60%, transparent);
+}
+
+/*
+ * Below the ground: identity, name, hour. Bounded by the standard's own width so
+ * two neighbours can never overprint each other — a title wraps instead.
+ */
+.standard__foot {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: var(--w);
+  padding-right: var(--s2);
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+
+.standard__title {
+  font-family: var(--font-display);
+  font-size: var(--t-label);
+  hyphens: auto;
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 650;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1.1;
+  /* Horizontal, always. Vertical Latin fits nine glyphs, not eighteen. */
+  overflow-wrap: anywhere;
+}
+
+.standard__arrival {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.standard--critical .standard__arrival {
+  color: var(--caution);
+}
+
+.standard.is-selected .standard__title {
+  color: var(--accent);
+}
+
+/* ── the reserve ────────────────────────────────────────────────────────── */
+
+/*
+ * The reserve sits below the ground, where an army keeps what it has not
+ * committed. No background of its own — it is a band in the same space, not a
+ * panel laid over it.
+ */
+.field__reserve {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 3;
+  border-top: var(--hair) solid var(--rule);
+  padding: var(--s3) var(--s4);
+  display: grid;
+  gap: var(--s2);
+  align-content: center;
+}
+
+.field__reserve ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s4);
+}
+
+.reserve__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  padding-inline: var(--s1);
+}
+
+.reserve__title {
+  font-family: var(--font-display);
+  font-size: var(--t-label-lg);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.reserve__item.is-selected .reserve__title {
+  color: var(--accent);
+}
+
+.reserve__figure {
+  font-size: var(--t-label);
+  color: var(--ink-faint);
+}

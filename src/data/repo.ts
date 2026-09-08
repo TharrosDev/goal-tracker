@@ -44,13 +44,19 @@ export async function readAll(): Promise<WorldState> {
   return { goals, milestones, entries, events, achievements }
 }
 
+/**
+ * `at` defaults to this instant but is passed explicitly whenever the thing being
+ * recorded happened at another time. An event that says it happened now, for a
+ * dispatch dated last Tuesday, quietly corrupts everything folded over the log.
+ */
 function event(
   type: TimelineEvent['type'],
   goalId: string | null,
   xp: number,
   data: TimelineEvent['data'] = {},
+  at: string = now(),
 ): TimelineEvent {
-  return { id: uid(), goalId, type, at: now(), xp, data }
+  return { id: uid(), goalId, type, at, xp, data }
 }
 
 // ── creation ────────────────────────────────────────────────────────────────
@@ -138,37 +144,42 @@ export async function logProgress(
   const biggest = Math.max(0, ...mine.filter((e) => e.mode === 'delta').map((e) => e.amount))
   const record = entry.mode === 'delta' && amount > biggest && mine.length >= 3
 
-  const doneStamp = now()
-  const reachedDone = reached.map((m) => ({ ...m, done: true, doneAt: doneStamp }))
+  const reachedDone = reached.map((m) => ({ ...m, done: true, doneAt: entry.at }))
   // A project closes when its last part does, so completion is judged against
   // the milestone list as it will be after this write, not as it was before.
   const afterMilestones = goalMilestones.map((m) => reachedDone.find((r) => r.id === m.id) ?? m)
   const completed = !goal.completedAt && isDone(next, afterMilestones)
   if (completed) {
-    next.completedAt = now()
+    next.completedAt = entry.at
     next.done = true
   }
 
+  // Every event this dispatch produces is stamped with the DISPATCH's instant,
+  // not with this one, so a backdated entry lands on the day it belongs to.
+  const stamp = entry.at
   const events: TimelineEvent[] = [
-    event('progress', goalId, xpFor('progress', goal, { streak, recovery }), {
-      amount,
-      mode: entry.mode,
-      from: before,
-      to: next.current,
-      recovery,
-      streak,
-    }),
+    event(
+      'progress',
+      goalId,
+      xpFor('progress', goal, { streak, recovery }),
+      { amount, mode: entry.mode, from: before, to: next.current, recovery, streak },
+      stamp,
+    ),
   ]
   for (const m of reached)
-    events.push(event('milestone', goalId, xpFor('milestone', goal), { title: m.title, at: m.at }))
-  if (record) events.push(event('record', goalId, xpFor('record', goal), { amount }))
+    events.push(
+      event('milestone', goalId, xpFor('milestone', goal), { title: m.title, at: m.at }, stamp),
+    )
+  if (record) events.push(event('record', goalId, xpFor('record', goal), { amount }, stamp))
   if (completed)
     events.push(
-      event('completed', goalId, xpFor('completed', goal), {
-        value: next.current,
-        target: goal.target,
-        days: days(goal.startDate, today()),
-      }),
+      event(
+        'completed',
+        goalId,
+        xpFor('completed', goal),
+        { value: next.current, target: goal.target, days: days(goal.startDate, dayOf(stamp)) },
+        stamp,
+      ),
     )
 
   await db.transaction('rw', [db.goals, db.entries, db.events, db.milestones], async () => {
