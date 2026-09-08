@@ -85,6 +85,8 @@ memoised selectors, **not** a second source of truth.
 | `field/layout.ts` | The war table's coordinate system. Pure and tested. |
 | `campaign/layout.ts` | The camp's ground plan. Pure. |
 | `design/contrast.test.ts` | Parses `tokens.css` and fails the build on any contrast violation. |
+| `design/motion.css` | Every keyframe and the `--dur-*`/`--ease-*` tokens. The six motion words. |
+| `design/motion.ts` | The same numbers for the two places that need them in JS. |
 
 ## Conventions
 
@@ -96,6 +98,12 @@ memoised selectors, **not** a second source of truth.
 - **No `setState` in an effect body.** Enforced by lint. Derive at render, or key the component.
 - **Nothing is stored that can be derived.** If you find yourself adding a cached field, check
   whether a fold over `events` gives it to you.
+- **Never animate an ancestor of the WebGL canvas.** react-three-fiber renders no children until
+  its container measures non-zero, and it may take that reading while a transform or an unresolved
+  flex height is in flight — after which no genuine resize arrives to correct it. The result is a
+  permanently empty scene with nothing in the console. `CampaignScene` passes
+  `resize={{ debounce: 0, scroll: false }}` and the scene is pinned to a resolved box; both files
+  carry the warning.
 
 ## Testing
 
