@@ -1,0 +1,493 @@
+/*
+ * Shared skeleton for the reading surfaces: the chronicle, the shrine, honours,
+ * the survey and the quartermaster. Deliberately one file — these are the same
+ * kind of place, and giving each its own layout would be five dialects of one
+ * language.
+ */
+.surface {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--s6) var(--s8) var(--s16);
+  display: grid;
+  align-content: start;
+  gap: var(--s8);
+  max-width: 1200px;
+}
+
+.surface__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--s4);
+  flex-wrap: wrap;
+  border-bottom: var(--hair) solid var(--rule);
+  padding-bottom: var(--s3);
+}
+
+.surface__block {
+  display: grid;
+  gap: var(--s3);
+}
+
+.surface__toggle {
+  display: flex;
+}
+
+.surface__toggle button,
+.qm__choices button {
+  min-height: var(--tap);
+  padding: 0 var(--s4);
+  border: var(--hair) solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-faint);
+}
+
+.surface__toggle button[aria-pressed='true'],
+.qm__choices button[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.surface--empty {
+  align-content: center;
+  max-width: 68ch;
+  gap: var(--s4);
+}
+
+.surface__mark {
+  font-family: 'Marks', serif;
+  font-size: clamp(56px, 10vw, 120px);
+  line-height: 1;
+  color: var(--rule-strong);
+}
+
+/* ── answers and measures ───────────────────────────────────────────────── */
+
+.surface__answers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--s8);
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s4);
+}
+
+.answer {
+  display: grid;
+  gap: var(--s1);
+  align-content: start;
+}
+
+.answer__value {
+  font-family: var(--font-display);
+  font-size: var(--t-h2);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.answer__detail {
+  font-size: var(--t-body);
+  color: var(--ink-dim);
+  line-height: 1.4;
+}
+
+.answer__go {
+  justify-self: start;
+  min-height: var(--tap);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--accent);
+}
+
+/* ── the chronicle's scrubber ───────────────────────────────────────────── */
+
+.chron {
+  display: grid;
+  gap: var(--s2);
+}
+
+.chron__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 140px;
+  border-bottom: var(--hair) solid var(--rule-strong);
+}
+
+.chron__bars li {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.chron__bar {
+  width: 100%;
+  height: max(var(--h), 2px);
+  background: var(--rule-strong);
+  min-height: 2px;
+}
+
+.chron__bar:hover {
+  background: var(--ink-dim);
+}
+
+.chron__bar.is-current {
+  background: var(--accent);
+}
+
+.chron__bar.is-best {
+  background: var(--ok);
+}
+
+.chron__bar.is-best.is-current {
+  background: var(--accent);
+}
+
+.chron__axis {
+  display: flex;
+  justify-content: space-between;
+}
+
+.story__goal {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+  color: var(--accent);
+  font-size: inherit;
+}
+
+/* ── the shrine ─────────────────────────────────────────────────────────── */
+
+.shrine {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--s8);
+}
+
+/*
+ * A monument. Not a card: no border, no fill, no radius — it is a rubbing, set
+ * on the ground under a struck rule, the way an inscription is.
+ */
+.monument button {
+  display: grid;
+  gap: var(--s2);
+  width: 100%;
+  text-align: left;
+  padding-top: var(--s3);
+  border-top: 2px solid var(--accent);
+}
+
+.monument__title {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.monument__figure {
+  font-family: var(--font-display);
+  font-size: var(--t-h2);
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.monument__facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s2) var(--s4);
+  padding-top: var(--s2);
+}
+
+.monument__facts dd {
+  font-size: var(--t-label-lg);
+  color: var(--ink-dim);
+}
+
+.monument__merit {
+  color: var(--merit);
+}
+
+.monument__why {
+  font-size: var(--t-body);
+  color: var(--ink-dim);
+  line-height: 1.4;
+  border-left: 2px solid var(--rule);
+  padding-left: var(--s3);
+}
+
+/* ── ledgers ────────────────────────────────────────────────────────────── */
+
+.ledger {
+  display: grid;
+  border-top: var(--hair) solid var(--rule);
+}
+
+.ledger > div {
+  display: grid;
+  grid-template-columns: 14rem 1fr;
+  gap: var(--s4);
+  align-items: baseline;
+  padding: var(--s2) 0;
+  border-bottom: var(--hair) solid var(--rule-hair);
+}
+
+.ledger dd {
+  display: flex;
+  gap: var(--s3);
+  align-items: baseline;
+  font-size: var(--t-body);
+  color: var(--ink);
+}
+
+.ledger__when {
+  color: var(--ink-faint);
+}
+
+/* ── honours ────────────────────────────────────────────────────────────── */
+
+.honours {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--s6);
+}
+
+.honour {
+  display: grid;
+  gap: var(--s1);
+  justify-items: start;
+  color: var(--ink-faint);
+  opacity: 0.6;
+}
+
+.honour.is-won {
+  opacity: 1;
+}
+
+.honour--bronze.is-won {
+  color: var(--ink-dim);
+}
+.honour--silver.is-won {
+  color: var(--ink);
+}
+.honour--gold.is-won {
+  color: var(--accent);
+}
+.honour--mythic.is-won {
+  color: var(--caution);
+}
+
+.honour__badge {
+  margin-bottom: var(--s1);
+}
+
+.honour__name {
+  font-family: var(--font-display);
+  font-size: var(--t-body-lg);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: currentColor;
+}
+
+.honour__desc {
+  font-size: var(--t-label-lg);
+  color: var(--ink-dim);
+  line-height: 1.4;
+}
+
+.honour__when {
+  color: var(--ink-faint);
+}
+
+/* ── the survey ─────────────────────────────────────────────────────────── */
+
+/*
+ * The activity field. A calendar-shaped heat map is a legitimate instrument —
+ * the axis is the calendar, and the value the darkest cell represents is stated
+ * in the label above it rather than left for the reader to guess.
+ */
+.heat {
+  display: grid;
+  grid-template-rows: repeat(7, 12px);
+  grid-auto-flow: column;
+  grid-auto-columns: 12px;
+  gap: 2px;
+  overflow-x: auto;
+  padding-bottom: var(--s2);
+}
+
+.heat__day {
+  background: color-mix(in oklab, var(--accent) calc(var(--v) * 100%), var(--ground-raised));
+  border: var(--hair) solid var(--rule-hair);
+}
+
+.houses {
+  display: grid;
+  border-top: var(--hair) solid var(--rule);
+}
+
+.houses li {
+  display: grid;
+  grid-template-columns: 12rem minmax(80px, 1fr) 4rem 12rem;
+  gap: var(--s4);
+  align-items: center;
+  padding: var(--s2) 0;
+  border-bottom: var(--hair) solid var(--rule-hair);
+}
+
+.houses__name {
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.houses__bar {
+  height: 8px;
+  background: var(--field);
+  position: relative;
+}
+
+.houses__bar::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--f) * 100%);
+  background: var(--accent);
+}
+
+.houses__figure {
+  font-size: var(--t-label-lg);
+  color: var(--ink-dim);
+  text-align: right;
+}
+
+.houses__count {
+  color: var(--ink-faint);
+}
+
+/* ── the quartermaster ──────────────────────────────────────────────────── */
+
+.qm__actions,
+.qm__choices {
+  display: flex;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+.qm__primary,
+.qm__secondary {
+  min-height: var(--tap);
+  padding: 0 var(--s6);
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.qm__primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.qm__secondary {
+  border: var(--hair) solid var(--rule-strong);
+  color: var(--ink-dim);
+}
+
+.qm__problem {
+  color: var(--caution);
+  font-size: var(--t-body);
+}
+
+.qm__report {
+  display: grid;
+  gap: var(--s2);
+  border-left: 2px solid var(--accent);
+  padding-left: var(--s4);
+}
+
+.qm__rejected ul {
+  padding-top: var(--s2);
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  color: var(--ink-faint);
+}
+
+.qm__legacy {
+  display: flex;
+  gap: var(--s3);
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: var(--s2);
+}
+
+.qm__legacy button {
+  min-height: var(--tap);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--accent);
+}
+
+.camps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--s3);
+}
+
+.camps__item {
+  width: 100%;
+  min-height: var(--tap);
+  display: grid;
+  gap: 2px;
+  padding: var(--s3);
+  border: var(--hair) solid var(--rule);
+  text-align: left;
+}
+
+.camps__item.is-on {
+  border-color: var(--accent);
+}
+
+.camps__name {
+  font-family: var(--font-display);
+  font-size: var(--t-body-lg);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.camps__item.is-on .camps__name {
+  color: var(--accent);
+}
+
+.camps__note {
+  font-size: var(--t-label-lg);
+  color: var(--ink-faint);
+  line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+  .surface {
+    padding: var(--s4) var(--s4) var(--s24);
+    gap: var(--s6);
+  }
+  .ledger > div,
+  .houses li {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}

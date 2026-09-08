@@ -1,0 +1,189 @@
+/*
+ * THE DOJO. Everything the rest of the product does is removed here.
+ *
+ * Note what is absent: no rail content, no field, no wind, no chronicle, no
+ * navigation but the way out. The room holds one standard and one action.
+ */
+.dojo {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: var(--s4) var(--s8) var(--s8);
+  background: var(--ground-inset);
+}
+
+.dojo__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s4);
+}
+
+.dojo__pick select {
+  min-height: var(--tap);
+  padding: 0 var(--s3);
+  background: none;
+  border: var(--hair) solid var(--rule);
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+}
+
+.dojo__leave {
+  min-height: var(--tap);
+  padding: 0 var(--s4);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-faint);
+}
+
+.dojo__centre {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: var(--s5, var(--s4));
+  max-width: 46ch;
+  margin-inline: auto;
+}
+
+.dojo__title {
+  color: var(--ink);
+  line-height: 0.9;
+}
+
+.dojo__gate {
+  display: grid;
+  gap: var(--s2);
+  justify-items: center;
+}
+
+.dojo__gate-title {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-weight: 650;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.dojo__gate button {
+  min-height: var(--tap);
+  padding: 0 var(--s4);
+  border: var(--hair) solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--accent);
+}
+
+.dojo__one {
+  text-align: center;
+}
+
+.dojo__clock {
+  display: grid;
+  justify-items: center;
+  gap: var(--s3);
+}
+
+/*
+ * A stopwatch, never a countdown. Nothing here counts down at anybody, and a
+ * session that ends after four minutes is a session.
+ */
+.dojo__time {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.dojo__clock-actions {
+  display: flex;
+  gap: var(--s3);
+}
+
+.dojo__clock-actions button {
+  min-height: var(--tap);
+  padding: 0 var(--s5, var(--s4));
+  border: var(--hair) solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-dim);
+}
+
+.dojo__clock-actions button:first-child {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.dojo__record {
+  display: grid;
+  gap: var(--s3);
+  justify-items: center;
+  width: 100%;
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s4);
+}
+
+.dojo__record label {
+  display: grid;
+  gap: var(--s2);
+  justify-items: center;
+  width: 100%;
+}
+
+.dojo__amount {
+  width: min(220px, 100%);
+  min-height: var(--tap);
+  padding: var(--s2);
+  text-align: center;
+  background: var(--field);
+  border: var(--hair) solid var(--rule);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--t-h2);
+  font-weight: 700;
+}
+
+.dojo__record button {
+  min-height: var(--tap);
+  padding: 0 var(--s6);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  letter-spacing: var(--tr-label);
+  font-weight: 600;
+}
+
+.dojo--empty {
+  grid-template-rows: none;
+  align-content: center;
+  justify-items: start;
+  gap: var(--s4);
+  max-width: 62ch;
+}
+
+.dojo__mark {
+  font-family: 'Marks', serif;
+  font-size: clamp(56px, 10vw, 110px);
+  line-height: 1;
+  color: var(--rule-strong);
+}
+
+.dojo--empty .dojo__leave {
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 0 var(--s6);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .dojo {
+    padding: var(--s3) var(--s4) var(--s24);
+  }
+}

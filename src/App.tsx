@@ -6,7 +6,12 @@ import { WarTable } from '@/routes/WarTable'
 import { StandardDetail } from '@/routes/StandardDetail'
 import { Plant } from '@/routes/Plant'
 import { Campaign } from '@/routes/Campaign'
-import { Holding } from '@/routes/Holding'
+import { Chronicle } from '@/routes/Chronicle'
+import { Shrine } from '@/routes/Shrine'
+import { Honours } from '@/routes/Honours'
+import { Dojo } from '@/routes/Dojo'
+import { Survey } from '@/routes/Survey'
+import { Quartermaster } from '@/routes/Quartermaster'
 import './design/index.css'
 
 const router = createBrowserRouter([
@@ -16,12 +21,12 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <WarTable /> },
       { path: 'campaign', element: <Campaign /> },
-      { path: 'dojo', element: <Holding surface="dojo" /> },
-      { path: 'shrine', element: <Holding surface="shrine" /> },
-      { path: 'chronicle', element: <Holding surface="chronicle" /> },
-      { path: 'honours', element: <Holding surface="honours" /> },
-      { path: 'survey', element: <Holding surface="survey" /> },
-      { path: 'quartermaster', element: <Holding surface="quartermaster" /> },
+      { path: 'dojo', element: <Dojo /> },
+      { path: 'shrine', element: <Shrine /> },
+      { path: 'chronicle', element: <Chronicle /> },
+      { path: 'honours', element: <Honours /> },
+      { path: 'survey', element: <Survey /> },
+      { path: 'quartermaster', element: <Quartermaster /> },
       { path: 'plant', element: <Plant /> },
       { path: 'standard/:id', element: <StandardDetail /> },
     ],
