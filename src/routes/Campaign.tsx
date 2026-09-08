@@ -77,7 +77,13 @@ export function Campaign() {
         </div>
       </header>
 
-      {tier === 'none' && !showRoll && (
+      {/*
+        Shown whenever the device or the motion setting made the choice, not only
+        when the roll is somehow unselected — the condition used to be
+        `!showRoll`, which is never true here, so the person was handed the roll
+        with no explanation and no visible way back.
+      */}
+      {tier === 'none' && (
         <p className="campaign__why label">
           THE ROLL IS SHOWN BECAUSE THIS DEVICE OR YOUR MOTION SETTING ASKS FOR IT.{' '}
           <button type="button" onClick={() => void updateSettings({ universeRenderer: 'webgl' })}>

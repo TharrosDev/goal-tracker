@@ -99,15 +99,19 @@ function Honour({
 }
 
 /**
- * The badge. A rosette whose point count is the tier and whose inner geometry is
- * seeded from the honour's id — so every one is distinct and none was drawn.
+ * The badge. A rosette seeded entirely from the honour's own id — so all
+ * twenty-three are distinct and not one of them was drawn by hand.
+ *
+ * The tier sets a FLOOR on the point count rather than fixing it: fixing it made
+ * every bronze honour a triangle and every gold one the same five-pointed star,
+ * which is a set that looks generated rather than a set of individuals.
  */
 function Badge({ id, tier, won }: { id: string; tier: AchievementTier; won: boolean }) {
   const next = rng(id)
-  const points = TIER_ORDER[tier]
-  const inner = 0.4 + next() * 0.25
+  const points = TIER_ORDER[tier] + Math.floor(next() * 3)
+  const inner = 0.34 + next() * 0.36
   const rotation = next() * 360
-  const bars = 3 + Math.floor(next() * 4)
+  const bars = 4 + Math.floor(next() * 6)
 
   const star = Array.from({ length: points * 2 }, (_, i) => {
     const r = i % 2 === 0 ? 44 : 44 * inner
@@ -137,16 +141,19 @@ function Badge({ id, tier, won }: { id: string; tier: AchievementTier; won: bool
         strokeWidth={1.5}
         opacity={won ? 0.9 : 0.35}
       />
+      {/* Rim notches. The count is part of the honour's identity, so they are
+          drawn heavily enough to actually be counted. */}
       {Array.from({ length: bars }, (_, i) => (
         <line
           key={i}
           x1={0}
           y1={-47}
           x2={0}
-          y2={-40}
-          strokeWidth={2}
+          y2={-38}
+          strokeWidth={3}
+          strokeLinecap="butt"
           stroke="currentColor"
-          opacity={won ? 1 : 0.3}
+          opacity={won ? 1 : 0.35}
           transform={`rotate(${(360 / bars) * i + rotation})`}
         />
       ))}

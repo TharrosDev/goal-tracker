@@ -74,7 +74,7 @@ memoised selectors, **not** a second source of truth.
 | `domain/progress.ts` | `fraction` across all ten kinds, `isDone`, `stateOf`, streaks, money rounding. |
 | `domain/momentum.ts` | The wind. A recency-weighted, per-day-saturated fold with no negative term. |
 | `domain/xp.ts` | Merit and the rank ladder. XP is stamped on the event at write time. |
-| `domain/achievements.ts` | 24 honours as pure predicates over a snapshot. |
+| `domain/achievements.ts` | 23 honours as pure predicates over a snapshot. |
 | `domain/identity.ts` | Deterministic per-goal crest, dye and orbit from the goal's id. |
 | `domain/history.ts` | Folds for the chronicle and the survey: periods, runs, comebacks, records, houses. |
 | `domain/copy.ts` | The chronicle's voice, and the rule that behind is never failure. |
@@ -105,7 +105,7 @@ for a worker on Windows and fails a green suite for no reason).
 What is covered: the inherited v1 arithmetic assertion-for-assertion, money rounding across a hundred
 writes, date maths across DST and leap boundaries, progress and completion for every kind, streaks,
 momentum's shape (steady beats bursty, recency beats age, never negative, never above one), the XP
-curve, all 24 honours, procedural identity's determinism, the field's line being exact for any span,
+curve, all 23 honours, procedural identity's determinism, the field's line being exact for any span,
 the history folds, and persistence end to end — migration (including two concurrent boots),
 export/import round-trip, partial-corruption salvage, orphan removal, ledger repair, and undo.
 

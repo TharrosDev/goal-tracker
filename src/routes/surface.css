@@ -317,11 +317,14 @@
  */
 .heat {
   display: grid;
-  grid-template-rows: repeat(7, 12px);
+  grid-template-rows: repeat(7, 1fr);
   grid-auto-flow: column;
-  grid-auto-columns: 12px;
+  /* Columns share the width rather than sitting at a fixed size: a fixed cell
+     leaves a year of activity stranded a third of the way across the page. */
+  grid-auto-columns: minmax(0, 1fr);
+  aspect-ratio: 52 / 7;
+  max-height: 132px;
   gap: 2px;
-  overflow-x: auto;
   padding-bottom: var(--s2);
 }
 

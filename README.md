@@ -27,7 +27,7 @@ pnpm check        # lint + typecheck + 210 tests + production build
 | 道場 | **THE DOJO** | one opponent, one technique, nothing else in the room |
 | 社 | **THE SHRINE** | taken standards, kept as monuments |
 | 記 | **THE CHRONICLE** | your best stretch, longest run, biggest comeback |
-| 誉 | **HONOURS** | twenty-four, ten named and fourteen to be found |
+| 誉 | **HONOURS** | twenty-three, ten named and thirteen to be found |
 | 検 | **THE SURVEY** | what the record says — and what it refuses to guess at |
 | 具 | **THE QUARTERMASTER** | export, import, the five camps, still air, sound |
 

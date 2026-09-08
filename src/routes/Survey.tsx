@@ -22,7 +22,9 @@ export function Survey() {
   const at = today()
 
   const weeks = useMemo(() => byWeek(entries, events, 12, at), [entries, events, at])
-  const heat = useMemo(() => activityByDay(entries, 182, at), [entries, at])
+  // A full year, so the field fills its width and reads as a calendar rather
+  // than a stranded block a third of the way across the page.
+  const heat = useMemo(() => activityByDay(entries, 364, at), [entries, at])
   const houses = useMemo(
     () => byHouse(goals, (g) => world.byId.get(g.id)?.fraction ?? 0),
     [goals, world],
@@ -82,8 +84,8 @@ export function Survey() {
       </section>
 
       <section className="surface__block">
-        <p className="label">ACTIVITY · LAST 182 DAYS · DARKEST IS {peakHeat} IN A DAY</p>
-        <ol className="heat" aria-label="Dispatches per day over the last 182 days">
+        <p className="label">ACTIVITY · LAST 52 WEEKS · DARKEST IS {peakHeat} IN A DAY</p>
+        <ol className="heat" aria-label="Dispatches per day over the last 52 weeks">
           {heat.map((d) => (
             <li
               key={d.date}
