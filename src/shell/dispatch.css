@@ -1,0 +1,121 @@
+/*
+ * A DISPATCH. One field, already focused. Nothing in here may grow into a form.
+ */
+.dispatch {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--ground-scrim);
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  padding: var(--s4);
+}
+
+.dispatch__panel {
+  width: min(460px, 100%);
+  display: grid;
+  gap: var(--s4);
+  padding: var(--s6);
+  background: var(--ground-raised);
+  border: var(--hair) solid var(--rule-strong);
+  box-shadow: 0 -3px 0 -1px var(--accent) inset;
+}
+
+.dispatch__mark {
+  font-family: 'Marks', serif;
+  font-size: 15px;
+  color: var(--accent);
+  margin-right: var(--s2);
+}
+
+.dispatch__field {
+  display: grid;
+  gap: var(--s2);
+}
+
+.dispatch__select,
+.dispatch__amount {
+  min-height: var(--tap);
+  padding: var(--s2) var(--s3);
+  background: var(--field);
+  border: var(--hair) solid var(--rule);
+  color: var(--ink);
+}
+
+.dispatch__select:focus-visible,
+.dispatch__amount:focus-visible {
+  border-color: var(--accent);
+  background: var(--field-focus);
+}
+
+/* The amount is the point of the sheet, so it is set like a figure. */
+.dispatch__amount {
+  font-family: var(--font-display);
+  font-size: var(--t-h2);
+  font-weight: 700;
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+}
+
+.dispatch__standing {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.dispatch__gates {
+  border: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.dispatch__gate {
+  min-height: var(--tap);
+  padding: var(--s2) var(--s3);
+  border: var(--hair) solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.dispatch__gate:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.dispatch__actions {
+  display: flex;
+  gap: var(--s3);
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.dispatch__cancel,
+.dispatch__send {
+  min-height: var(--tap);
+  padding: var(--s2) var(--s6);
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.dispatch__cancel {
+  color: var(--ink-faint);
+}
+
+.dispatch__send {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.dispatch__send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

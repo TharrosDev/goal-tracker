@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router'
 import { useWorld } from '@/state/world'
 import { AppShell } from '@/shell/AppShell'
 import { WarTable } from '@/routes/WarTable'
+import { StandardDetail } from '@/routes/StandardDetail'
 import { Holding } from '@/routes/Holding'
 import './design/index.css'
 
@@ -20,7 +21,7 @@ const router = createBrowserRouter([
       { path: 'survey', element: <Holding surface="survey" /> },
       { path: 'quartermaster', element: <Holding surface="quartermaster" /> },
       { path: 'plant', element: <Holding surface="standard" /> },
-      { path: 'standard/:id', element: <Holding surface="standard" /> },
+      { path: 'standard/:id', element: <StandardDetail /> },
     ],
   },
 ])

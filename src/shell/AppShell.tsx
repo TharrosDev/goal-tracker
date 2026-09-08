@@ -1,6 +1,10 @@
-import { NavLink, Outlet } from 'react-router'
+import { useCallback, useMemo, useState } from 'react'
+import { NavLink, Outlet, useNavigate } from 'react-router'
 import { SURFACE, type SurfaceKey } from '@/design/marks'
 import { useApplyWorld, useNarrow } from './prefs'
+import { useHotkeys, type Binding } from './hotkeys'
+import { Palette } from './Palette'
+import { Dispatch } from './Dispatch'
 import './shell.css'
 
 /**
@@ -33,6 +37,31 @@ const MOBILE = ['/', '/campaign', '/plant', '/dojo', '/chronicle'] as const
 export function AppShell() {
   useApplyWorld()
   const narrow = useNarrow()
+  const navigate = useNavigate()
+  const [overlay, setOverlay] = useState<'none' | 'palette' | 'dispatch'>('none')
+  const close = useCallback(() => setOverlay('none'), [])
+
+  /**
+   * Every command is a single key, and every one of them is also reachable by
+   * pointer. Escape always closes whatever is open — it is the way out, so it
+   * works even while typing.
+   */
+  const bindings = useMemo<Binding[]>(
+    () => [
+      ...DESTINATIONS.map((d) => ({
+        key: d.hotkey.toLowerCase(),
+        label: SURFACE[d.key].name,
+        run: () => navigate(d.to),
+      })),
+      { key: 'n', label: 'Plant a standard', run: () => navigate('/plant') },
+      { key: 'q', label: 'Log a dispatch', run: () => setOverlay('dispatch') },
+      { key: '/', label: 'Order book', run: () => setOverlay('palette') },
+      { key: 'k', meta: true, label: 'Order book', run: () => setOverlay('palette') },
+      { key: 'escape', label: 'Close', run: close },
+    ],
+    [navigate, close],
+  )
+  useHotkeys(bindings)
 
   return (
     <div className="camp">
@@ -82,6 +111,9 @@ export function AppShell() {
       <main className="camp__main" id="field">
         <Outlet />
       </main>
+
+      <Palette open={overlay === 'palette'} onClose={close} />
+      <Dispatch open={overlay === 'dispatch'} onClose={close} onLogged={() => {}} />
 
       {narrow && (
         <nav className="tabs" aria-label="Camp">

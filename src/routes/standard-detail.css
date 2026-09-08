@@ -1,0 +1,269 @@
+/*
+ * A STANDARD's ground. Not a title, a bar and a task list — the title is
+ * enormous, one figure carries the number, and the middle of the surface is the
+ * standard's own story.
+ */
+.detail {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--s6) var(--s8) var(--s16);
+  display: grid;
+  gap: var(--s8);
+  align-content: start;
+  max-width: 1100px;
+}
+
+.detail__head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s4);
+  align-items: start;
+  border-bottom: var(--hair) solid var(--rule);
+  padding-bottom: var(--s4);
+}
+
+.detail__title {
+  color: var(--ink);
+  margin-top: var(--s1);
+}
+
+/* The figure and the facts, side by side. The figure dominates. */
+.detail__standing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.7fr);
+  gap: var(--s8);
+  align-items: start;
+}
+
+/*
+ * The currency sign rides at the figure's cap height rather than its baseline:
+ * at mega size a baseline-aligned prefix sits in a hole under the digits.
+ */
+.numeral {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.06em;
+}
+
+.numeral__affix {
+  font-family: var(--font-display);
+  font-size: 0.24em;
+  font-weight: 700;
+  line-height: 1;
+  padding-top: 0.32em;
+  color: var(--ink-dim);
+}
+
+.detail__of {
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-top: var(--s2);
+}
+
+.detail__facts {
+  display: grid;
+  gap: 0;
+  border-top: var(--hair) solid var(--rule);
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: var(--s3);
+  align-items: baseline;
+  padding: var(--s2) 0;
+  border-bottom: var(--hair) solid var(--rule-hair);
+}
+
+.fact dd {
+  font-size: var(--t-body);
+  color: var(--ink);
+}
+
+.fact.is-urgent dd {
+  color: var(--caution);
+}
+
+.fact__mark {
+  font-family: 'Marks', serif;
+  margin-right: var(--s2);
+  color: var(--accent);
+}
+
+/* ── trajectory ─────────────────────────────────────────────────────────── */
+
+.trajectory {
+  display: grid;
+  gap: var(--s2);
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s3);
+}
+
+.trajectory figcaption {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── the runway of gates ────────────────────────────────────────────────── */
+
+.runway {
+  display: grid;
+  gap: 0;
+  border-top: var(--hair) solid var(--rule);
+}
+
+.runway li button {
+  width: 100%;
+  min-height: var(--tap);
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) 0;
+  border-bottom: var(--hair) solid var(--rule-hair);
+  text-align: left;
+}
+
+.runway__tick {
+  width: 13px;
+  height: 2px;
+  background: var(--rule-strong);
+}
+
+.runway li.is-passed .runway__tick {
+  background: var(--accent);
+  height: 4px;
+}
+
+.runway__title {
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.runway li.is-passed .runway__title {
+  color: var(--ink);
+}
+
+.runway__at {
+  font-size: var(--t-label-lg);
+  color: var(--ink-faint);
+}
+
+/* ── the chronicle ──────────────────────────────────────────────────────── */
+
+.story {
+  display: grid;
+  border-top: var(--hair) solid var(--rule);
+}
+
+.story li {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr auto;
+  gap: var(--s3);
+  align-items: baseline;
+  padding: var(--s2) 0;
+  border-bottom: var(--hair) solid var(--rule-hair);
+}
+
+.story__what {
+  font-size: var(--t-body);
+  color: var(--ink);
+}
+
+.story__merit {
+  font-size: var(--t-label-lg);
+  color: var(--merit);
+}
+
+/* ── related ────────────────────────────────────────────────────────────── */
+
+.detail__related ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s4);
+  padding-top: var(--s2);
+}
+
+.detail__related button {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.detail__related button:hover {
+  color: var(--accent);
+}
+
+/* ── actions ────────────────────────────────────────────────────────────── */
+
+.detail__actions {
+  display: flex;
+  gap: var(--s4);
+  flex-wrap: wrap;
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s4);
+}
+
+.detail__send,
+.detail__strike,
+.detail__back {
+  min-height: var(--tap);
+  padding: var(--s2) var(--s6);
+  font-family: var(--font-mono);
+  font-size: var(--t-label-lg);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.detail__send,
+.detail__back {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.detail__strike {
+  border: var(--hair) solid var(--rule-strong);
+  color: var(--ink-dim);
+}
+
+.detail--gone {
+  align-content: center;
+  justify-items: start;
+  gap: var(--s4);
+}
+
+.detail__why .lede {
+  padding-top: var(--s2);
+}
+
+@media (max-width: 900px) {
+  .detail {
+    padding: var(--s4) var(--s4) var(--s24);
+    gap: var(--s6);
+  }
+  .detail__standing {
+    grid-template-columns: 1fr;
+    gap: var(--s4);
+  }
+  .fact,
+  .story li {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .story li {
+    padding: var(--s3) 0;
+  }
+}
