@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "layout-transition",
+        "value": "transition: height var(--dur-travel) var(--ease-out);",
+        "createdAt": "2026-09-08T22:36:53.283Z",
+        "reason": "Deliberate, documented exception: out-of-flow element, event-driven not looping, bounded node count. scaleY would stretch .standard__stencil (a per-goal repeating gradient) and permanently distort every katazome. Rationale at the site in field.css and in the governing rule in motion.css."
+      }
+    ]
+  }
+}

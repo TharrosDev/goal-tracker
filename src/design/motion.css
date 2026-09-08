@@ -14,11 +14,20 @@
  *
  * If a proposed animation is not one of those, it does not go in.
  *
- * Everything here is transform and opacity only — the two properties the
- * compositor can animate without touching layout or paint — and everything is
- * one-shot. There are no looping animations in this file; the only loops in the
+ * Everything in THIS FILE is transform and opacity only — the two properties
+ * the compositor can animate without touching layout or paint — and everything
+ * is one-shot. There are no looping animations here; the only loops in the
  * product are the wind in the WebGL scene and the pressure/decay pair below,
  * all of which stop in still air.
+ *
+ * The rule that actually governs, stated properly: NEVER ANIMATE A LAYOUT
+ * PROPERTY ON IN-FLOW CONTENT. An out-of-flow element, animated on an event
+ * rather than a loop, across a bounded number of nodes, is allowed — and there
+ * is exactly one, the cloth's height in field.css, which is out of flow, fires
+ * on a dispatch, and covers at most a couple of dozen nodes. It has to be
+ * height: the cloth carries a per-goal stencil that scaleY would stretch, so a
+ * transform would permanently distort every katazome by a different amount.
+ * That exception is documented at the site. Do not add a second one casually.
  */
 
 :root {

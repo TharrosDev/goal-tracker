@@ -141,7 +141,20 @@
  * The cloth. Height is progress; the top edge carries state as FORM, which is
  * what makes every state legible in KURO with no colour to spend.
  */
-/* SETTLE: the cloth travels to its new height rather than jumping to it. */
+/*
+ * SETTLE: the cloth travels to its new height rather than jumping to it.
+ *
+ * This animates HEIGHT, which the motion language otherwise forbids, and the
+ * exception is deliberate. `scaleY` is the compositor-friendly alternative, but
+ * the cloth contains `.standard__stencil` — a repeating gradient cut at a
+ * per-goal angle — and scaling would stretch it, leaving every katazome
+ * permanently distorted by a different amount. The pattern is identity; the
+ * frame budget is not worth losing it.
+ *
+ * The cost is bounded and small: these elements are absolutely positioned, so
+ * nothing reflows around them; it fires on a dispatch rather than in a loop; and
+ * the field holds a couple of dozen standards at the very most.
+ */
 .standard__cloth,
 .standard__shortfall {
   transition: height var(--dur-travel) var(--ease-out);
