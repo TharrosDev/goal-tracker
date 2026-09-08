@@ -1,0 +1,69 @@
+/*
+ * The undo bar. Sits opposite the sealing so a strike and a completion never
+ * occupy the same corner.
+ */
+.undo {
+  position: fixed;
+  right: var(--s4);
+  bottom: var(--s4);
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  background: var(--ground-raised);
+  border-left: 2px solid var(--caution);
+  max-width: min(520px, calc(100vw - var(--s8)));
+}
+
+/* The window, drawn rather than counted down in words. */
+.undo__clock {
+  width: 3px;
+  align-self: stretch;
+  background: linear-gradient(
+    to top,
+    var(--caution) calc(var(--left) * 100%),
+    var(--rule) calc(var(--left) * 100%)
+  );
+}
+
+.undo__line {
+  font-size: var(--t-body);
+  color: var(--ink-dim);
+  line-height: 1.35;
+}
+
+.undo__line b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.undo__go {
+  min-height: var(--tap);
+  padding: 0 var(--s4);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.undo__dismiss {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  color: var(--ink-faint);
+  font-size: 22px;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .undo {
+    left: var(--s2);
+    right: var(--s2);
+    bottom: calc(var(--bottom-nav) + var(--s2));
+    max-width: none;
+    flex-wrap: wrap;
+  }
+}

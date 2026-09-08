@@ -6,6 +6,7 @@ import { Mon } from '@/viz/Mon'
 import { Numeral } from '@/viz/Numeral'
 import { Trajectory } from '@/viz/Trajectory'
 import { Dispatch } from '@/shell/Dispatch'
+import { Govern } from './Govern'
 import { STATE_MARK, SURFACE } from '@/design/marks'
 import { fmtDate, today } from '@/domain/date'
 import { relativeDays, value, valueParts } from '@/domain/format'
@@ -192,6 +193,8 @@ export function StandardDetail() {
           {goal.paused ? 'RAISE AGAIN' : 'STRIKE THE CAMP'}
         </button>
       </div>
+
+      <Govern view={view} />
 
       <Dispatch
         open={dispatching}

@@ -66,6 +66,8 @@ export interface WorldStore {
   reopenGoal: (id: string) => Promise<void>
   deleteGoal: (id: string) => Promise<void>
   undoDelete: () => Promise<void>
+  /** Let the undo window close without restoring. */
+  forgetTrash: () => void
 
   addMilestone: (goalId: string, title: string, at?: number | null) => Promise<void>
   setMilestoneDone: (id: string, done: boolean) => Promise<void>
@@ -236,6 +238,8 @@ export const useWorld = create<WorldStore>((set, get) => {
       set({ lastTrash: trash })
       await refresh()
     },
+
+    forgetTrash: () => set({ lastTrash: null }),
 
     undoDelete: async () => {
       const trash = get().lastTrash

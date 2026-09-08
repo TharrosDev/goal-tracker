@@ -6,6 +6,8 @@ import { Numeral } from '@/viz/Numeral'
 import { Mark } from '@/viz/Mark'
 import { SURFACE } from '@/design/marks'
 import { WINDOW } from '@/domain/momentum'
+import { welcomeBack } from '@/domain/copy'
+import { useWorld } from '@/state/world'
 import './war-table.css'
 
 /**
@@ -19,6 +21,7 @@ import './war-table.css'
 export function WarTable() {
   const world = useWorldView()
   const navigate = useNavigate()
+  const awayDays = useWorld((s) => s.awayDays)
   const [selected, setSelected] = useState<string | null>(null)
 
   const { momentum, progression, streak, live, urgent } = world
@@ -27,8 +30,19 @@ export function WarTable() {
 
   if (!live.length) return <EmptyField />
 
+  // The one place the product speaks to somebody coming back. It names the
+  // length of the silence and does not scold — naming it is what makes coming
+  // back possible. See DESIGN.md 10.
+  const returning = welcomeBack(awayDays)
+
   return (
     <div className="war">
+      {returning && (
+        <p className="war__return" role="status">
+          {returning}
+        </p>
+      )}
+
       <div className="war__wind">
         <Numeral
           value={Math.round(momentum.score * 100)}

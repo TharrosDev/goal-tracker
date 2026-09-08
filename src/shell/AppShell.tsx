@@ -6,6 +6,7 @@ import { useHotkeys, type Binding } from './hotkeys'
 import { Palette } from './Palette'
 import { Dispatch } from './Dispatch'
 import { Ceremony } from './Ceremony'
+import { Undo } from './Undo'
 import './shell.css'
 
 /**
@@ -116,6 +117,7 @@ export function AppShell() {
       <Palette open={overlay === 'palette'} onClose={close} />
       <Dispatch open={overlay === 'dispatch'} onClose={close} onLogged={() => {}} />
       <Ceremony />
+      <Undo />
 
       {narrow && (
         <nav className="tabs" aria-label="Camp">

@@ -12,6 +12,20 @@
 }
 
 /*
+ * Coming back after a silence. Set in the ink of an ordinary sentence, not a
+ * banner and not a warning — it is a greeting, and it sits above the wind
+ * because it is the first thing that should be read.
+ */
+.war__return {
+  font-size: var(--t-body-lg);
+  color: var(--ink-dim);
+  border-left: 2px solid var(--accent);
+  padding-left: var(--s3);
+  margin-bottom: var(--s3);
+  max-width: 62ch;
+}
+
+/*
  * THE WIND. Overlaps the field's scale rather than sitting above it in its own
  * row: the numeral is in the space, not in a box beside it.
  */

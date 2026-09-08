@@ -1,0 +1,153 @@
+/*
+ * GOVERN. Collapsed by default: the standard's ground is for reading where you
+ * stand, and changing what the thing IS is a rarer act that must not compete
+ * with the figure.
+ */
+.govern {
+  display: grid;
+  gap: var(--s4);
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s4);
+}
+
+.govern__toggle {
+  justify-self: start;
+  min-height: var(--tap);
+  color: var(--ink-faint);
+}
+
+.govern__toggle:hover {
+  color: var(--accent);
+}
+
+.govern__body {
+  display: grid;
+  gap: var(--s6);
+}
+
+.govern__block {
+  display: grid;
+  gap: var(--s2);
+}
+
+.govern__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  align-items: center;
+}
+
+.govern__block input,
+.govern__block select,
+.govern__block textarea {
+  min-height: var(--tap);
+  padding: var(--s2) var(--s3);
+  background: var(--field);
+  border: var(--hair) solid var(--rule);
+  color: var(--ink);
+  font-size: var(--t-body);
+}
+
+.govern__block textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.govern__block input:focus-visible,
+.govern__block select:focus-visible,
+.govern__block textarea:focus-visible {
+  border-color: var(--accent);
+  background: var(--field-focus);
+}
+
+.govern__row input[type='text'],
+.govern__row input:not([type]) {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.govern__row input.num {
+  width: 7rem;
+}
+
+.govern__row button,
+.govern__gates button {
+  min-height: var(--tap);
+  padding: 0 var(--s4);
+  border: var(--hair) solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-dim);
+}
+
+.govern__row button:hover,
+.govern__gates button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Striking is the one destructive act, and it is the only vermilion here. */
+.govern__strike {
+  border-color: color-mix(in oklab, var(--caution) 60%, transparent) !important;
+  color: var(--caution) !important;
+}
+
+.govern__strike:hover {
+  background: var(--caution);
+  color: var(--accent-ink) !important;
+  border-color: var(--caution) !important;
+}
+
+.govern__gates {
+  display: grid;
+  border-top: var(--hair) solid var(--rule-hair);
+}
+
+.govern__gates li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--s3);
+  align-items: center;
+  padding: var(--s1) 0;
+  border-bottom: var(--hair) solid var(--rule-hair);
+  font-size: var(--t-body);
+  color: var(--ink-dim);
+}
+
+.govern__gates .is-passed {
+  color: var(--accent);
+}
+
+.govern__ties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.govern__ties button {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  padding: 0 var(--s3);
+  border: var(--hair) solid var(--rule);
+  font-family: var(--font-display);
+  font-size: var(--t-label-lg);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.govern__ties button.is-tied {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.govern__note {
+  font-size: var(--t-label-lg);
+  color: var(--ink-faint);
+  line-height: 1.4;
+}
