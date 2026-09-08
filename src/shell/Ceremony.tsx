@@ -8,6 +8,7 @@ import { EVENT_COPY } from '@/domain/copy'
 import { dayOf, days, fmtDate, today } from '@/domain/date'
 import { value } from '@/domain/format'
 import { useReducedMotion } from './prefs'
+import { sound } from './sound'
 import './ceremony.css'
 
 /**
@@ -48,6 +49,16 @@ function Sealing() {
   // Honours unlocked by the same action ride along with this ceremony rather
   // than interrupting separately. Drained once, at mount.
   const [honours] = useState<string[]>(() => drainUnlocks().map((u) => u.id))
+
+  // One sound per ceremony, at mount, gated on the setting. Nothing in this
+  // product makes a noise on hover, focus or navigation — only on something
+  // having happened.
+  const soundOn = useWorld((s) => s.settings.sound)
+  useEffect(() => {
+    sound(honours.length ? 'honour' : cue.tier, soundOn)
+    // Deliberately mount-only: a ceremony is one event, so it makes one sound.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const view = world.byId.get(cue.goalId)
   const big = cue.tier === 'taken' || cue.tier === 'siege'

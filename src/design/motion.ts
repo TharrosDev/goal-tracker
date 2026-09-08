@@ -1,4 +1,14 @@
-import type { Transition, Variants } from 'motion/react'
+/**
+ * Local shapes rather than an import.
+ *
+ * These mirrored Motion's `Transition` and `Variants`, but every animation in
+ * this product ships as CSS — which is GPU-friendly, costs nothing, and is
+ * already doing the job — so the library was a dependency that existed only to
+ * supply two type aliases that get erased at build. It is gone; this file stays
+ * as what it always really was: the motion VOCABULARY and its tokens.
+ */
+type Transition = Record<string, unknown>
+type Variants = Record<string, Record<string, unknown>>
 
 /**
  * THE MOTION LANGUAGE

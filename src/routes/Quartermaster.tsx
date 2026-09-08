@@ -183,6 +183,30 @@ export function Quartermaster() {
       </section>
 
       <section className="surface__block">
+        <p className="label">SOUND</p>
+        <p className="lede">
+          Five sounds, synthesised on the device — there are no audio files here. They mark things
+          that happened: a dispatch landing, a gate passed, a standard taken, a siege falling, an
+          honour. Nothing plays on hover, on focus, or while you type.
+        </p>
+        <div className="qm__choices" role="group" aria-label="Sound">
+          {[
+            { v: false, label: 'SILENT' },
+            { v: true, label: 'SOUND ON' },
+          ].map((o) => (
+            <button
+              key={String(o.v)}
+              type="button"
+              aria-pressed={settings.sound === o.v}
+              onClick={() => void updateSettings({ sound: o.v })}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="surface__block">
         <p className="label">THE CAMPAIGN</p>
         <div className="qm__choices" role="group" aria-label="How the campaign is drawn">
           {[

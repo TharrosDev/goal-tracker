@@ -175,3 +175,4 @@ export const lineOf = (layout: FieldLayout, width: number) => ({
   x2: width,
   y2: layout.ground - layout.usable,
 })
+
