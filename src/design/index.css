@@ -1,0 +1,7 @@
+/* Self-hosted so the application works with no network, as it always has. */
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
+@import './tokens.css';
+@import './type.css';
+@import './base.css';

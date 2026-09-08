@@ -1,0 +1,168 @@
+/*
+ * TYPE AS A SYSTEM
+ *
+ * Typography is one of the two primary visual systems here (the other is
+ * motion), so the scale is deliberately extreme: from an 11.5px condensed label
+ * to a numeral that fills a viewport. Everything between is one of the steps
+ * below, and nothing is set in an arbitrary size.
+ *
+ * The floors are a standing requirement, not a preference: labels never go below
+ * 11.5px, body never below 19px. Undersized text has been pushed back on twice.
+ * When in doubt, larger.
+ */
+
+:root {
+  /* Labels: condensed, tracked out, uppercase. The smallest type in the system. */
+  --t-label: 0.719rem; /* 11.5px */
+  --t-label-lg: 0.8125rem; /* 13px */
+
+  /* Reading sizes. */
+  --t-body: 1.1875rem; /* 19px */
+  --t-body-lg: 1.25rem; /* 20px */
+  --t-lede: clamp(1.3125rem, 1.1rem + 0.9vw, 1.625rem);
+
+  /* Headings. */
+  --t-h3: clamp(1.375rem, 1.15rem + 1vw, 1.75rem);
+  --t-h2: clamp(1.75rem, 1.2rem + 2.6vw, 2.75rem);
+  --t-h1: clamp(2.25rem, 1.2rem + 5vw, 4.5rem);
+
+  /* Display. These exist to dominate a viewport, not to label a section. */
+  --t-display: clamp(3rem, 0.5rem + 11vw, 9rem);
+  --t-mega: clamp(4.5rem, -1rem + 24vw, 20rem);
+
+  --lh-tight: 0.86;
+  --lh-snug: 1.06;
+  --lh-body: 1.5;
+
+  --tr-label: 0.14em;
+  --tr-tight: -0.02em;
+  --tr-mega: -0.045em;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-variation-settings: 'wdth' var(--wdth-normal);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * The label. Condensed, spaced, uppercase — the connective tissue of the whole
+ * interface, and the thing that makes it read as instrumentation.
+ */
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  line-height: 1.2;
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 500;
+}
+
+.label--lg {
+  font-size: var(--t-label-lg);
+}
+
+.label--live {
+  color: var(--accent);
+}
+
+/*
+ * Numerals. Tabular so a column of figures aligns on the point, exactly as the
+ * almanac's figure table did, and heavy enough to carry at display size.
+ */
+.num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: var(--tr-tight);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-size: var(--t-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-mega);
+  font-weight: 700;
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+}
+
+.mega {
+  font-family: var(--font-display);
+  font-size: var(--t-mega);
+  line-height: 0.78;
+  letter-spacing: var(--tr-mega);
+  font-weight: 800;
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  font-variant-numeric: tabular-nums;
+}
+
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-h1);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-tight);
+  font-weight: 700;
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+}
+
+.h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-h2);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-tight);
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.h3 {
+  font-family: var(--font-display);
+  font-size: var(--t-h3);
+  line-height: var(--lh-snug);
+  font-weight: 600;
+}
+
+.lede {
+  font-size: var(--t-lede);
+  line-height: 1.35;
+  color: var(--ink-dim);
+  max-width: 62ch;
+}
+
+.body-lg {
+  font-size: var(--t-body-lg);
+}
+
+.dim {
+  color: var(--ink-dim);
+}
+.faint {
+  color: var(--ink-faint);
+}
+
+/* Vertical setting, used where a rail label runs alongside a tall composition. */
+.vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* Wide setting. Reserved for the few places a word needs to feel structural. */
+.wide {
+  font-variation-settings: 'wdth' var(--wdth-wide);
+}

@@ -1,0 +1,259 @@
+/*
+ * SEMANTIC TOKENS
+ *
+ * Every colour in the application is one of the names below. A world changes
+ * what the names point at; it never adds a name, and no component ever writes a
+ * literal colour. That is the whole contract, and it is what makes five
+ * genuinely different visual worlds possible without five sets of components.
+ *
+ * SIGNAL is the authored default: a high-energy technical instrument. Near-black
+ * ground, hairline structure, and four saturated signal colours that each mean
+ * exactly one thing. Colour here is data, not decoration — if everything glows,
+ * nothing reads.
+ */
+
+:root,
+[data-world='signal'] {
+  color-scheme: dark;
+
+  /* ── ground ────────────────────────────────────────────────────────────── */
+  --ground: #04060a;
+  --ground-raised: #090e16;
+  --ground-inset: #010306;
+  --ground-scrim: rgba(2, 4, 8, 0.86);
+
+  /* ── ink ───────────────────────────────────────────────────────────────── */
+  --ink: #e9f2f8;
+  --ink-dim: #93a7b6;
+  --ink-faint: #566875;
+  --ink-inverse: #04060a;
+
+  /* ── structure ─────────────────────────────────────────────────────────── */
+  --rule: rgba(147, 167, 182, 0.16);
+  --rule-strong: rgba(147, 167, 182, 0.34);
+  --rule-hair: rgba(147, 167, 182, 0.08);
+
+  /* ── signal ────────────────────────────────────────────────────────────── */
+  --accent: #00e0ff;
+  --accent-ink: #04060a;
+  --ok: #b4ff35;
+  --warn: #ffb302;
+  --caution: #ff2d6f;
+  --xp: #8a6bff;
+
+  /* ── goal states ───────────────────────────────────────────────────────── */
+  --state-new: #b4ff35;
+  --state-active: #00e0ff;
+  --state-critical: #ff2d6f;
+  --state-stalled: #566875;
+  --state-paused: #566875;
+  --state-completed: #e9f2f8;
+
+  /* ── surfaces built from the above ─────────────────────────────────────── */
+  --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 40%, transparent),
+    0 0 32px -8px color-mix(in oklab, var(--accent) 60%, transparent);
+  --field: rgba(147, 167, 182, 0.06);
+  --field-focus: rgba(0, 224, 255, 0.1);
+
+  /* ── type ──────────────────────────────────────────────────────────────── */
+  --font-display: 'Archivo Variable', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Width axis, used as a system: labels are condensed, display type expands. */
+  --wdth-condensed: 78;
+  --wdth-normal: 100;
+  --wdth-wide: 118;
+
+  /* ── geometry ──────────────────────────────────────────────────────────── */
+  /* Sharp by default. Rounded corners are the house style of the thing this
+     product is deliberately not. A radius has to be argued for. */
+  --radius: 0px;
+  --radius-soft: 2px;
+  --hair: 1px;
+
+  /* ── noise / texture ───────────────────────────────────────────────────── */
+  --scanline-opacity: 0.045;
+  --grain-opacity: 0.03;
+}
+
+/*
+ * VOID — dark tactical. The signal palette drained to one amber channel, so the
+ * interface reads as instrumentation rather than energy. Quieter, colder,
+ * built for long sessions.
+ */
+[data-world='void'] {
+  color-scheme: dark;
+  --ground: #060607;
+  --ground-raised: #0d0e10;
+  --ground-inset: #010102;
+  --ground-scrim: rgba(4, 4, 5, 0.88);
+  --ink: #ecebe8;
+  --ink-dim: #9b9a95;
+  --ink-faint: #5c5b57;
+  --ink-inverse: #060607;
+  --rule: rgba(236, 235, 232, 0.14);
+  --rule-strong: rgba(236, 235, 232, 0.3);
+  --rule-hair: rgba(236, 235, 232, 0.07);
+  --accent: #ffb648;
+  --accent-ink: #060607;
+  --ok: #cfd3c4;
+  --warn: #ffb648;
+  --caution: #ff5c3a;
+  --xp: #d8cdb4;
+  --state-new: #cfd3c4;
+  --state-active: #ffb648;
+  --state-critical: #ff5c3a;
+  --state-stalled: #5c5b57;
+  --state-paused: #5c5b57;
+  --state-completed: #ecebe8;
+  --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 34%, transparent);
+  --field: rgba(236, 235, 232, 0.05);
+  --field-focus: rgba(255, 182, 72, 0.1);
+  --scanline-opacity: 0.02;
+  --grain-opacity: 0.045;
+}
+
+/*
+ * PAPER — experimental printed editorial. Off-white stock, black ink, two
+ * risograph spots. Nothing glows; emphasis comes from scale and overprint.
+ */
+[data-world='paper'] {
+  color-scheme: light;
+  --ground: #f2efe6;
+  --ground-raised: #ffffff;
+  --ground-inset: #e6e2d6;
+  --ground-scrim: rgba(242, 239, 230, 0.9);
+  --ink: #14120f;
+  --ink-dim: #56514a;
+  --ink-faint: #8b857b;
+  --ink-inverse: #f2efe6;
+  --rule: rgba(20, 18, 15, 0.26);
+  --rule-strong: rgba(20, 18, 15, 0.6);
+  --rule-hair: rgba(20, 18, 15, 0.12);
+  --accent: #1f3ee0;
+  --accent-ink: #f2efe6;
+  --ok: #0f7a4a;
+  --warn: #b26a00;
+  --caution: #e02b2b;
+  --xp: #1f3ee0;
+  --state-new: #0f7a4a;
+  --state-active: #1f3ee0;
+  --state-critical: #e02b2b;
+  --state-stalled: #8b857b;
+  --state-paused: #8b857b;
+  --state-completed: #14120f;
+  --glow: none;
+  --field: rgba(20, 18, 15, 0.05);
+  --field-focus: rgba(31, 62, 224, 0.08);
+  --scanline-opacity: 0;
+  --grain-opacity: 0.07;
+}
+
+/*
+ * TERMINAL — machine interface. One phosphor colour and its dimmings, box-rule
+ * structure, everything monospaced.
+ */
+[data-world='terminal'] {
+  color-scheme: dark;
+  --ground: #020604;
+  --ground-raised: #04100a;
+  --ground-inset: #010302;
+  --ground-scrim: rgba(1, 4, 2, 0.9);
+  --ink: #6bff9e;
+  --ink-dim: #37a865;
+  --ink-faint: #1e5f3a;
+  --ink-inverse: #020604;
+  --rule: rgba(107, 255, 158, 0.2);
+  --rule-strong: rgba(107, 255, 158, 0.45);
+  --rule-hair: rgba(107, 255, 158, 0.1);
+  --accent: #6bff9e;
+  --accent-ink: #020604;
+  --ok: #6bff9e;
+  --warn: #e8ff6b;
+  --caution: #ff6b6b;
+  --xp: #6bffe8;
+  --state-new: #e8ff6b;
+  --state-active: #6bff9e;
+  --state-critical: #ff6b6b;
+  --state-stalled: #1e5f3a;
+  --state-paused: #1e5f3a;
+  --state-completed: #d9ffe8;
+  --glow: 0 0 24px -6px color-mix(in oklab, var(--accent) 70%, transparent);
+  --field: rgba(107, 255, 158, 0.06);
+  --field-focus: rgba(107, 255, 158, 0.12);
+  --font-display: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --font-body: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --wdth-condensed: 100;
+  --wdth-wide: 100;
+  --scanline-opacity: 0.09;
+  --grain-opacity: 0.02;
+}
+
+/*
+ * CHAOS — maximum intensity. Every signal colour live at once. Deliberately
+ * uncomfortable; offered, never defaulted to.
+ */
+[data-world='chaos'] {
+  color-scheme: dark;
+  --ground: #0a0014;
+  --ground-raised: #16002b;
+  --ground-inset: #050009;
+  --ground-scrim: rgba(10, 0, 20, 0.85);
+  --ink: #fff5ff;
+  --ink-dim: #c79fe0;
+  --ink-faint: #7c5a94;
+  --ink-inverse: #0a0014;
+  --rule: rgba(255, 245, 255, 0.22);
+  --rule-strong: rgba(255, 245, 255, 0.5);
+  --rule-hair: rgba(255, 245, 255, 0.1);
+  --accent: #00ffd5;
+  --accent-ink: #0a0014;
+  --ok: #d0ff00;
+  --warn: #ff9d00;
+  --caution: #ff0055;
+  --xp: #b400ff;
+  --state-new: #d0ff00;
+  --state-active: #00ffd5;
+  --state-critical: #ff0055;
+  --state-stalled: #7c5a94;
+  --state-paused: #7c5a94;
+  --state-completed: #fff5ff;
+  --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 60%, transparent),
+    0 0 48px -6px color-mix(in oklab, var(--accent) 80%, transparent);
+  --field: rgba(255, 245, 255, 0.08);
+  --field-focus: rgba(0, 255, 213, 0.16);
+  --scanline-opacity: 0.08;
+  --grain-opacity: 0.05;
+}
+
+/* ── scale ─────────────────────────────────────────────────────────────────
+ * One spacing rhythm, shared by every world. Values are unitless multiples of
+ * the base step so a layout can be re-tuned in one place.
+ */
+:root {
+  --step: 4px;
+  --s1: calc(var(--step) * 1);
+  --s2: calc(var(--step) * 2);
+  --s3: calc(var(--step) * 3);
+  --s4: calc(var(--step) * 4);
+  --s6: calc(var(--step) * 6);
+  --s8: calc(var(--step) * 8);
+  --s12: calc(var(--step) * 12);
+  --s16: calc(var(--step) * 16);
+  --s24: calc(var(--step) * 24);
+  --s32: calc(var(--step) * 32);
+
+  /* Minimum touch target. Not negotiable on any world or breakpoint. */
+  --tap: 44px;
+
+  /* Chrome dimensions the layout and the WebGL scene both need to agree on. */
+  --rail: 64px;
+  --bottom-nav: 68px;
+
+  --z-scene: 0;
+  --z-content: 10;
+  --z-chrome: 100;
+  --z-overlay: 500;
+  --z-ceremony: 900;
+}
