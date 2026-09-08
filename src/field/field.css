@@ -74,6 +74,16 @@
   z-index: 2;
 }
 
+/* The palisade arrives as a wave, left to right. */
+.field__standards > .standard {
+  animation: enter var(--dur-normal) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+[data-motion='reduced'] .field__standards > .standard {
+  animation: none;
+}
+
 .standard {
   position: absolute;
   bottom: 0;
@@ -131,6 +141,12 @@
  * The cloth. Height is progress; the top edge carries state as FORM, which is
  * what makes every state legible in KURO with no colour to spend.
  */
+/* SETTLE: the cloth travels to its new height rather than jumping to it. */
+.standard__cloth,
+.standard__shortfall {
+  transition: height var(--dur-travel) var(--ease-out);
+}
+
 .standard__cloth {
   position: absolute;
   bottom: 0;

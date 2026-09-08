@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { useWorld } from '@/state/world'
 import { useWorldView } from '@/state/useWorldView'
 import { Mon } from '@/viz/Mon'
@@ -36,6 +36,10 @@ const STAGES = [
 
 export function Plant() {
   const navigate = useNavigate()
+  // `?under=<id>` comes from PLANT A DETACHMENT on the campaign, so the map can
+  // create something that already belongs to what you were looking at.
+  const [params] = useSearchParams()
+  const under = params.get('under')
   const createGoal = useWorld((s) => s.createGoal)
   const world = useWorldView()
   const [ritual, setRitual] = useState(false)
@@ -54,6 +58,7 @@ export function Plant() {
     priority: 3,
     difficulty: 3,
     boss: false,
+    parentId: under,
     gates: '',
   })
 
@@ -86,12 +91,18 @@ export function Plant() {
   }
 
   const categories = [...new Set(world.views.map((v) => v.goal.category).filter(Boolean))]
+  const parentTitle = under ? (world.byId.get(under)?.goal.title ?? null) : null
 
   if (!ritual)
     return (
-      <div className="plant">
+      <div className="plant enter">
         <p className="label">{SURFACE.standard.name}</p>
-        <h1 className="h1">PLANT A STANDARD</h1>
+        <h1 className="h1">{under ? 'PLANT A DETACHMENT' : 'PLANT A STANDARD'}</h1>
+        {parentTitle && (
+          <p className="lede">
+            It will belong to <b>{parentTitle}</b> and orbit it in the campaign.
+          </p>
+        )}
 
         <form
           className="plant__quick"

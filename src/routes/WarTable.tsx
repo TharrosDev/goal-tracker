@@ -36,7 +36,7 @@ export function WarTable() {
   const returning = welcomeBack(awayDays)
 
   return (
-    <div className="war">
+    <div className="war enter">
       {returning && (
         <p className="war__return" role="status">
           {returning}

@@ -53,7 +53,7 @@ export function Survey() {
     )
 
   return (
-    <div className="surface">
+    <div className="surface enter">
       <header className="surface__head">
         <div>
           <p className="label">{SURFACE.survey.name}</p>

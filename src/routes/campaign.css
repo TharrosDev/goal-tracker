@@ -59,10 +59,33 @@
   font: inherit;
 }
 
+/*
+ * NEVER ANIMATE AN ANCESTOR OF THE CANVAS.
+ *
+ * react-three-fiber measures this container on mount and does not render its
+ * children until that measurement is non-zero. A transform running on an
+ * ancestor while it measures produces a reading it never revises, because no
+ * genuine resize follows to correct it — and the scene stays permanently empty
+ * with no error in the console.
+ *
+ * The `enter` animation therefore lives on the head and on the roll, never on
+ * `.campaign` or on this element.
+ */
 .campaign__body {
   flex: 1;
   min-height: 0;
   position: relative;
+}
+
+/*
+ * The scene is taken out of flow and pinned to this box, so its size is a
+ * resolved rectangle from the first frame rather than something the flex
+ * algorithm is still working out while r3f takes its one measurement.
+ */
+.campaign__body > canvas,
+.campaign__body > div:has(> canvas) {
+  position: absolute;
+  inset: 0;
 }
 
 .campaign__roll {
@@ -179,4 +202,78 @@
   .campaign__reset {
     display: none;
   }
+}
+
+/* ── reorganising, from the map ─────────────────────────────────────────── */
+
+/*
+ * A mode is armed. Stated at the top of the surface rather than as a cursor
+ * change, because a mode you cannot see is a mode you will be surprised by.
+ */
+.campaign__pending {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  padding: var(--s2) var(--s3);
+  border-left: 2px solid var(--accent);
+  background: var(--field-focus);
+}
+
+.campaign__pending .label {
+  color: var(--accent);
+}
+
+.campaign__pending-from {
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.campaign__pending button {
+  margin-left: auto;
+  min-height: var(--tap);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-faint);
+}
+
+/* What can be done to the chosen standard, from here. */
+.campaign__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s3);
+  padding-top: var(--s1);
+}
+
+.campaign__acts button {
+  min-height: var(--tap);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+.campaign__acts button:first-child,
+.campaign__acts button:hover {
+  color: var(--accent);
+}
+
+.campaign__plant-small {
+  min-height: var(--tap);
+  padding: 0 var(--s4);
+  border: var(--hair) solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  color: var(--ink-dim);
+}
+
+.campaign__plant-small:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }

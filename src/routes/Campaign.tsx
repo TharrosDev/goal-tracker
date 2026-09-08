@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useWorldView } from '@/state/useWorldView'
 import { useWorld } from '@/state/world'
@@ -28,12 +28,53 @@ export function Campaign() {
   const [selected, setSelected] = useState<string | null>(null)
   const [showRoll, setShowRoll] = useState(tier === 'none')
 
+  /**
+   * Reorganising, from the map.
+   *
+   * The campaign was a reading surface: you could select and open, and nothing
+   * else. Relationships had to be made on a standard's own ground, which is the
+   * wrong place — a tie is a fact ABOUT THE MAP and it should be made on it.
+   *
+   * The model is pick-then-pick, which works identically in the scene and in
+   * the roll and needs no dragging: choose a standard, choose what to do, then
+   * choose the other standard. Escape leaves the mode at any point.
+   */
+  const [pending, setPending] = useState<{ action: 'tie' | 'under'; from: string } | null>(null)
+  const toggleLink = useWorld((s) => s.toggleLink)
+  const patchGoal = useWorld((s) => s.patchGoal)
+
   const live = useMemo(() => world.views.filter((v) => !v.goal.archived), [world.views])
   const plan = useMemo(() => planCampaign(live), [live])
   const ambient = ambientFor(world.momentum.score, tier === 'none')
 
   const scene = tier !== 'none' && !showRoll
   const chosen = world.byId.get(selected ?? '')
+  const source = world.byId.get(pending?.from ?? '')
+
+  useEffect(() => {
+    if (!pending) return
+    const leave = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      // Stops the shell's own Escape from also firing: leaving the mode is the
+      // more local meaning of the key while a mode is armed.
+      e.stopPropagation()
+      setPending(null)
+    }
+    window.addEventListener('keydown', leave, true)
+    return () => window.removeEventListener('keydown', leave, true)
+  }, [pending])
+
+  /** In a pending mode, picking a standard completes the act instead. */
+  const pick = (id: string | null) => {
+    if (!pending || !id || id === pending.from) {
+      setSelected(id)
+      return
+    }
+    if (pending.action === 'tie') void toggleLink(pending.from, id)
+    else void patchGoal(pending.from, { parentId: id })
+    setPending(null)
+    setSelected(id)
+  }
 
   if (!live.length)
     return (
@@ -54,13 +95,17 @@ export function Campaign() {
 
   return (
     <div className="campaign">
-      <header className="campaign__head">
+      <header className="campaign__head enter">
         <div>
           <p className="label">{SURFACE.campaign.name}</p>
           <p className="campaign__count num">
             {plan.bodies.length} PITCHED · {plan.links.length} TIES
           </p>
         </div>
+
+        <button type="button" className="campaign__plant-small" onClick={() => navigate('/plant')}>
+          PITCH A STANDARD
+        </button>
 
         <div className="campaign__views" role="group" aria-label="How to read the campaign">
           <button
@@ -92,6 +137,18 @@ export function Campaign() {
         </p>
       )}
 
+      {pending && (
+        <p className="campaign__pending" role="status">
+          <span className="label">
+            {pending.action === 'tie' ? 'TIE' : 'BELONGS TO'} — CHOOSE THE OTHER STANDARD
+          </span>
+          <span className="campaign__pending-from">{source?.goal.title}</span>
+          <button type="button" onClick={() => setPending(null)}>
+            CANCEL — ESC
+          </button>
+        </p>
+      )}
+
       <div className="campaign__body">
         {scene ? (
           <Suspense fallback={<p className="label campaign__loading">PITCHING THE CAMP…</p>}>
@@ -99,13 +156,13 @@ export function Campaign() {
               plan={plan}
               selectedId={selected}
               intensity={ambient.rate}
-              onSelect={setSelected}
+              onSelect={pick}
               onOpen={(id) => navigate(`/standard/${id}`)}
             />
           </Suspense>
         ) : (
-          <div className="campaign__roll">
-            <CampaignRoll plan={plan} selectedId={selected} onSelect={setSelected} />
+          <div className="campaign__roll enter">
+            <CampaignRoll plan={plan} selectedId={selected} onSelect={pick} />
           </div>
         )}
       </div>
@@ -118,9 +175,34 @@ export function Campaign() {
             {Math.round(chosen.fraction * 100)}% ·{' '}
             {chosen.arrival ? chosen.arrival.text : 'no hour'}
           </p>
-          <button type="button" onClick={() => navigate(`/standard/${chosen.goal.id}`)}>
-            GO TO IT →
-          </button>
+          <div className="campaign__acts">
+            <button type="button" onClick={() => navigate(`/standard/${chosen.goal.id}`)}>
+              GO TO IT →
+            </button>
+            <button
+              type="button"
+              onClick={() => setPending({ action: 'tie', from: chosen.goal.id })}
+            >
+              TIE TO…
+            </button>
+            <button
+              type="button"
+              onClick={() => setPending({ action: 'under', from: chosen.goal.id })}
+            >
+              BELONGS TO…
+            </button>
+            <button type="button" onClick={() => navigate(`/plant?under=${chosen.goal.id}`)}>
+              PLANT A DETACHMENT
+            </button>
+            {chosen.goal.parentId && (
+              <button
+                type="button"
+                onClick={() => void patchGoal(chosen.goal.id, { parentId: null })}
+              >
+                FREE IT
+              </button>
+            )}
+          </div>
         </aside>
       )}
 

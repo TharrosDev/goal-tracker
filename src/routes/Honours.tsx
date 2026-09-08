@@ -3,6 +3,7 @@ import { ACHIEVEMENTS, type AchievementDef, type AchievementTier } from '@/domai
 import { SURFACE } from '@/design/marks'
 import { dayOf, fmtDate } from '@/domain/date'
 import { rng } from '@/domain/identity'
+import { staggerIndex } from '@/design/motion'
 import './surface.css'
 
 /**
@@ -21,7 +22,7 @@ export function Honours() {
   const foundHidden = hidden.filter((a) => held.has(a.id))
 
   return (
-    <div className="surface">
+    <div className="surface enter">
       <header className="surface__head">
         <div>
           <p className="label">{SURFACE.honours.name}</p>
@@ -33,10 +34,11 @@ export function Honours() {
 
       <section className="surface__block">
         <p className="label">AWARDED FOR</p>
-        <ul className="honours">
-          {open.map((a) => (
+        <ul className="honours stagger">
+          {open.map((a, i) => (
             <Honour
               key={a.id}
+              index={i}
               def={a}
               at={held.get(a.id)?.at ?? null}
               value={held.get(a.id)?.value ?? null}
@@ -53,10 +55,11 @@ export function Honours() {
           These are not listed. They are found by doing something worth doing, and the shape is the
           only clue you get.
         </p>
-        <ul className="honours">
-          {hidden.map((a) => (
+        <ul className="honours stagger">
+          {hidden.map((a, i) => (
             <Honour
               key={a.id}
+              index={i}
               def={a}
               at={held.get(a.id)?.at ?? null}
               value={held.get(a.id)?.value ?? null}
@@ -75,16 +78,21 @@ function Honour({
   def,
   at,
   value,
+  index,
   redacted = false,
 }: {
   def: AchievementDef
   at: string | null
   value: number | null
+  index: number
   redacted?: boolean
 }) {
   const won = at !== null
   return (
-    <li className={`honour honour--${def.tier}${won ? ' is-won' : ''}`}>
+    <li
+      className={`honour honour--${def.tier}${won ? ' is-won' : ''}`}
+      style={{ '--i': staggerIndex(index) } as React.CSSProperties}
+    >
       <Badge id={def.id} tier={def.tier} won={won} />
       <span className="honour__name">{redacted && !won ? '—' : def.name}</span>
       <span className="honour__desc">{redacted && !won ? 'Not yet found.' : def.description}</span>

@@ -5,6 +5,7 @@
 @import './tokens.css';
 @import './type.css';
 @import './base.css';
+@import './motion.css';
 
 /*
  * The marks. 27 kanji subset out of Noto Serif JP by scripts/subset-marks.mjs —

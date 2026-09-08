@@ -1,6 +1,7 @@
 import type { Placed } from './layout'
 import { Mon } from '@/viz/Mon'
 import { STATE_MARK } from '@/design/marks'
+import { staggerIndex } from '@/design/motion'
 import { value } from '@/domain/format'
 
 /**
@@ -19,12 +20,15 @@ export function Standard({
   onSelect,
   onOpen,
   tabIndex,
+  index,
 }: {
   placed: Placed
   selected: boolean
   onSelect: () => void
   onOpen: () => void
   tabIndex: number
+  /** Position in the field, for the arrival stagger. */
+  index: number
 }) {
   const { view, width, height, lineHeight } = placed
   const { goal, state, fraction, arrival, sigil, dye, milestones } = view
@@ -43,7 +47,20 @@ export function Standard({
 
   return (
     <li
-      className={`standard standard--${state}${selected ? ' is-selected' : ''}`}
+      className={[
+        'standard',
+        `standard--${state}`,
+        // FORM: a standard planted in the last three days is still assembling.
+        state === 'new' ? 'form' : '',
+        // PRESSURE: amplitude is the real 0..1 deadline pressure, so this is
+        // invisible at a distance and unmistakable up close.
+        state === 'critical' && view.pressure > 0.35 ? 'pressure' : '',
+        // DECAY: gone quiet. The quietest thing on the field, never the loudest.
+        state === 'stalled' ? 'decay' : '',
+        selected ? 'is-selected' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       style={
         {
           '--x': `${placed.x}px`,
@@ -52,6 +69,8 @@ export function Standard({
           '--line': `${lineHeight}px`,
           '--behind': `${behindBy}px`,
           '--pole': `${1 + goal.priority * 0.5}px`,
+          '--pressure': view.pressure,
+          '--i': staggerIndex(index),
           '--dye': `var(--dye-${dye + 1})`,
           // Katazome is cut per house. The stencil's angle, period and weight
           // come from the goal's own sigil, so two standards in the same dye are

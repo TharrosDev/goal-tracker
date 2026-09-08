@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router'
 import type { CampaignPlan } from './layout'
 import type { GoalView } from '@/state/selectors'
+import { staggerIndex } from '@/design/motion'
 import { Mon } from '@/viz/Mon'
 import { STATE_MARK } from '@/design/marks'
 import { value } from '@/domain/format'
@@ -37,11 +38,14 @@ export function CampaignRoll({
   const nameOf = (id: string) =>
     plan.bodies.find((b) => b.view.goal.id === id)?.view.goal.title ?? id
 
-  const Entry = ({ view, depth }: { view: GoalView; depth: number }) => {
+  const Entry = ({ view, depth, index }: { view: GoalView; depth: number; index: number }) => {
     const allies = alliesOf(view)
     const mark = STATE_MARK[view.state]
     return (
-      <li className={`roll__entry roll__entry--${depth}`}>
+      <li
+        className={`roll__entry roll__entry--${depth}`}
+        style={{ '--i': staggerIndex(index) } as React.CSSProperties}
+      >
         <button
           type="button"
           className={`roll__row${view.goal.id === selectedId ? ' is-selected' : ''}`}
@@ -72,8 +76,8 @@ export function CampaignRoll({
 
         {childrenOf(view.goal.id).length > 0 && (
           <ul className="roll__detachments">
-            {childrenOf(view.goal.id).map((child) => (
-              <Entry key={child.view.goal.id} view={child.view} depth={depth + 1} />
+            {childrenOf(view.goal.id).map((child, i) => (
+              <Entry key={child.view.goal.id} view={child.view} depth={depth + 1} index={i} />
             ))}
           </ul>
         )}
@@ -89,9 +93,9 @@ export function CampaignRoll({
     )
 
   return (
-    <ul className="roll" aria-label="The muster roll">
-      {roots.map((b) => (
-        <Entry key={b.view.goal.id} view={b.view} depth={0} />
+    <ul className="roll stagger" aria-label="The muster roll">
+      {roots.map((b, i) => (
+        <Entry key={b.view.goal.id} view={b.view} depth={0} index={i} />
       ))}
     </ul>
   )

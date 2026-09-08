@@ -54,7 +54,7 @@ export function StandardDetail() {
   const story = world.recent.filter((e) => e.goalId === goal.id).slice(0, 12)
 
   return (
-    <div className="detail">
+    <div className="detail enter">
       <header className="detail__head">
         <Mon
           sigil={view.sigil}

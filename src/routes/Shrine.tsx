@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router'
 import { useWorldView } from '@/state/useWorldView'
 import { useWorld } from '@/state/world'
+import { staggerIndex } from '@/design/motion'
 import { Mon } from '@/viz/Mon'
 import { SURFACE } from '@/design/marks'
 import { dayOf, days, fmtDate } from '@/domain/date'
@@ -44,7 +45,7 @@ export function Shrine() {
     )
 
   return (
-    <div className="surface">
+    <div className="surface enter">
       <header className="surface__head">
         <div>
           <p className="label">{SURFACE.shrine.name}</p>
@@ -52,8 +53,8 @@ export function Shrine() {
         </div>
       </header>
 
-      <ul className="shrine">
-        {taken.map((v) => {
+      <ul className="shrine stagger">
+        {taken.map((v, i) => {
           const span =
             v.goal.completedAt !== null
               ? days(v.goal.startDate, dayOf(v.goal.completedAt))
@@ -65,7 +66,11 @@ export function Shrine() {
           const merit = events.filter((e) => e.goalId === v.goal.id).reduce((s, e) => s + e.xp, 0)
 
           return (
-            <li key={v.goal.id} className="monument">
+            <li
+              key={v.goal.id}
+              className="monument"
+              style={{ '--i': staggerIndex(i) } as React.CSSProperties}
+            >
               <button type="button" onClick={() => navigate(`/standard/${v.goal.id}`)}>
                 <Mon
                   sigil={v.sigil}

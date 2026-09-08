@@ -1,0 +1,157 @@
+/*
+ * THE MOTION LANGUAGE, as CSS.
+ *
+ * The vocabulary and its reasoning live in `motion.ts`; this file is the half
+ * that actually animates. Six words, and every animation in the product is one
+ * of them:
+ *
+ *   ENTER      something arrives in the world
+ *   FORM       something is being created — it assembles rather than fades
+ *   SETTLE     a number or a bar arrives at its new value   (JS: useSettledNumber)
+ *   PRESSURE   a deadline is close; the object refuses to sit still
+ *   DECAY      it has gone quiet; it drifts and dims
+ *   RESOLVE    it is finished, permanently                  (ceremony.css)
+ *
+ * If a proposed animation is not one of those, it does not go in.
+ *
+ * Everything here is transform and opacity only — the two properties the
+ * compositor can animate without touching layout or paint — and everything is
+ * one-shot. There are no looping animations in this file; the only loops in the
+ * product are the wind in the WebGL scene and the pressure/decay pair below,
+ * all of which stop in still air.
+ */
+
+:root {
+  --dur-instant: 90ms;
+  --dur-quick: 220ms;
+  --dur-normal: 420ms;
+  --dur-travel: 620ms;
+  --dur-slow: 950ms;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* How long a staggered child waits per position. Capped by the list itself. */
+  --stagger: 26ms;
+}
+
+/*
+ * ENTER — arriving content. A short rise and a de-blur, never a plain fade:
+ * fading reads as loading, rising reads as arriving.
+ */
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.enter {
+  animation: enter var(--dur-normal) var(--ease-out) both;
+}
+
+/*
+ * Do not put `.enter` (or any transform) on an ancestor of a WebGL canvas.
+ * react-three-fiber measures its container on mount and will not render its
+ * children until that reading is non-zero; a transform in flight gives it one
+ * it never revises, and the scene stays empty with nothing in the console.
+ * See the note in routes/campaign.css.
+ */
+
+/*
+ * FORM — creation. The object assembles from a line rather than appearing:
+ * used where something is coming into existence for the first time.
+ */
+@keyframes form {
+  from {
+    opacity: 0;
+    transform: scaleY(0.04) scaleX(0.7);
+  }
+}
+
+.form {
+  animation: form var(--dur-slow) var(--ease-back) both;
+  transform-origin: bottom center;
+}
+
+/*
+ * A staggered list. The delay is set per item by `--i` and the total is capped
+ * in the component, so a long list arrives as a wave rather than a queue.
+ */
+.stagger > * {
+  animation: enter var(--dur-normal) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+/*
+ * PRESSURE — a deadline closing in. Amplitude comes from the real 0..1 pressure,
+ * so it is invisible at a distance and unmistakable up close. It never blinks
+ * and never reddens on its own: urgency is not punishment.
+ */
+@keyframes pressure {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(calc(var(--pressure, 0) * 1.4px));
+  }
+  75% {
+    transform: translateX(calc(var(--pressure, 0) * -1.4px));
+  }
+}
+
+.pressure {
+  animation: pressure calc(2.4s - var(--pressure, 0) * 1s) linear infinite;
+}
+
+/* DECAY — gone quiet. It drifts and sits lower, and that is all. */
+@keyframes decay {
+  0%,
+  100% {
+    opacity: 0.62;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(2px);
+  }
+}
+
+.decay {
+  animation: decay 7s ease-in-out infinite;
+}
+
+/*
+ * STILL AIR.
+ *
+ * Not the motion deleted — the end state, immediately. Every rule above animates
+ * from a start state to the element's natural one, so cancelling the animation
+ * leaves exactly the composition that was intended. Nothing becomes invisible or
+ * unreachable, which is the failure mode of stripping motion by hiding things.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .form,
+  .stagger > *,
+  .pressure,
+  .decay {
+    animation: none;
+  }
+  .decay {
+    opacity: 0.55;
+  }
+}
+
+[data-motion='reduced'] .enter,
+[data-motion='reduced'] .form,
+[data-motion='reduced'] .stagger > *,
+[data-motion='reduced'] .pressure,
+[data-motion='reduced'] .decay {
+  animation: none;
+}
+
+[data-motion='reduced'] .decay {
+  opacity: 0.55;
+}

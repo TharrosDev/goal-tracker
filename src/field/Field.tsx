@@ -135,9 +135,10 @@ export function Field({
         aria-activedescendant={selectedId ?? undefined}
         style={{ height: `${layout.ground}px` }}
       >
-        {layout.dated.map((placed) => (
+        {layout.dated.map((placed, i) => (
           <Standard
             key={placed.view.goal.id}
+            index={i}
             placed={placed}
             selected={placed.view.goal.id === selectedId}
             onSelect={() => onSelect(placed.view.goal.id)}

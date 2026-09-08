@@ -81,7 +81,7 @@ export function Dojo() {
   }
 
   return (
-    <div className="dojo">
+    <div className="dojo enter">
       <header className="dojo__head">
         <label className="dojo__pick">
           <span className="sr-only">Which standard</span>

@@ -232,13 +232,30 @@ export default function CampaignScene({
 
   return (
     <Canvas
-      camera={{ position: [0, plan.extent * 1.05, plan.extent * 1.35], fov: 40 }}
+      /*
+       * Framed for the NAMES, not for the bodies. Each standard's label floats
+       * at 2.9x its own size above it, so a camera that frames the camp neatly
+       * crops the labels off the top — which is the half of the scene carrying
+       * the information.
+       */
+      camera={{ position: [0, plan.extent * 1.3, plan.extent * 1.85], fov: 38 }}
       dpr={[1, 2]}
       // The loop stops when nothing is moving and when the tab is hidden: there
       // is no permanent render loop in this product.
       frameloop={intensity > 0 ? 'always' : 'demand'}
       onPointerMissed={() => onSelect(null)}
       gl={{ antialias: true, alpha: true }}
+      /*
+       * Measure immediately and never on scroll.
+       *
+       * react-three-fiber renders NOTHING until its container measures
+       * non-zero, and with the default debounce it can take its only reading
+       * while this container's flex height is still resolving — after which no
+       * genuine resize ever arrives to correct it, so the scene stays
+       * permanently empty with nothing in the console. Costing a frame here is
+       * cheaper than a camp that silently does not exist.
+       */
+      resize={{ debounce: 0, scroll: false }}
     >
       <Ground extent={plan.extent} />
       <Links plan={plan} />
@@ -255,6 +272,12 @@ export default function CampaignScene({
       ))}
       <OrbitControls
         makeDefault
+        /*
+         * Aimed above the ground, not at it. The default target is the origin,
+         * which centres the frame on an empty plane and pushes the standards —
+         * and the names floating above them — off the top edge.
+         */
+        target={[0, plan.extent * 0.22, 0]}
         enablePan
         minDistance={3}
         maxDistance={plan.extent * 3}

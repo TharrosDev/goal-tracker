@@ -64,7 +64,7 @@ export function Chronicle() {
     )
 
   return (
-    <div className="surface">
+    <div className="surface enter">
       <header className="surface__head">
         <div>
           <p className="label">{SURFACE.chronicle.name}</p>
