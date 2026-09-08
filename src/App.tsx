@@ -47,7 +47,6 @@ export function App() {
   return (
     <main className="boot">
       <div className="ambient" aria-hidden="true" />
-      <div className="gridfield" aria-hidden="true" />
 
       <header className="boot__head">
         <p className="label label--live">SYSTEM {ready ? 'ONLINE' : 'BOOTING'}</p>

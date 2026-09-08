@@ -137,22 +137,6 @@ ol {
 }
 
 /*
- * The measured grid. A hairline field that makes the whole surface read as a
- * drawing rather than a page, and gives broken-grid layouts something to break.
- */
-.gridfield {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: var(--z-scene);
-  background-image:
-    linear-gradient(to right, var(--rule-hair) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--rule-hair) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, black 20%, transparent 75%);
-}
-
-/*
  * REDUCED MOTION
  * Not a degraded mode. Transitions collapse to instant state changes and every
  * looping animation stops, but the composition, the scale, and the colour system
