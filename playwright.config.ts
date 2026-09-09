@@ -16,7 +16,15 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  /*
+   * Four, not "half the cores".
+   *
+   * Every worker drives the same `vite preview`, and the routes are lazily
+   * chunked now, so eight workers all cold-loading a different chunk at once
+   * turn a 200ms navigation into a twenty-second one and fail assertions that
+   * are about the product rather than about the harness.
+   */
+  workers: process.env.CI ? 2 : 4,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
   timeout: 30_000,
   expect: { timeout: 7_000 },

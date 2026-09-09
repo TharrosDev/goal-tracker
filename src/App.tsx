@@ -3,32 +3,64 @@ import { createBrowserRouter, RouterProvider } from 'react-router'
 import { useWorld } from '@/state/world'
 import { AppShell } from '@/shell/AppShell'
 import { WarTable } from '@/routes/WarTable'
-import { StandardDetail } from '@/routes/StandardDetail'
-import { Plant } from '@/routes/Plant'
-import { Campaign } from '@/routes/Campaign'
-import { Chronicle } from '@/routes/Chronicle'
-import { Shrine } from '@/routes/Shrine'
-import { Honours } from '@/routes/Honours'
-import { Dojo } from '@/routes/Dojo'
-import { Survey } from '@/routes/Survey'
-import { Quartermaster } from '@/routes/Quartermaster'
 import './design/index.css'
 
+/**
+ * THE SURFACES.
+ *
+ * Only the war table is in the entry chunk. It is the index route and the first
+ * thing anybody sees, so a lazy boundary there would buy a few kilobytes at the
+ * cost of a blank frame on every cold start — which is the one place in this
+ * product where a blank frame is unaffordable.
+ *
+ * Everything else arrives when it is asked for. Each of these is a surface
+ * somebody navigates to deliberately, over a local network of exactly zero
+ * hops, and the chunk is already in the offline cache by the second visit.
+ *
+ * `lazy` takes a module and reads `Component` off it, so each of these names
+ * its own export rather than the file having to have a default. That keeps the
+ * routes greppable: the component is still `export function Chronicle`.
+ */
 const router = createBrowserRouter([
   {
     path: '/',
     element: <AppShell />,
     children: [
       { index: true, element: <WarTable /> },
-      { path: 'campaign', element: <Campaign /> },
-      { path: 'dojo', element: <Dojo /> },
-      { path: 'shrine', element: <Shrine /> },
-      { path: 'chronicle', element: <Chronicle /> },
-      { path: 'honours', element: <Honours /> },
-      { path: 'survey', element: <Survey /> },
-      { path: 'quartermaster', element: <Quartermaster /> },
-      { path: 'plant', element: <Plant /> },
-      { path: 'standard/:id', element: <StandardDetail /> },
+      {
+        path: 'campaign',
+        lazy: async () => ({ Component: (await import('@/routes/Campaign')).Campaign }),
+      },
+      { path: 'dojo', lazy: async () => ({ Component: (await import('@/routes/Dojo')).Dojo }) },
+      {
+        path: 'shrine',
+        lazy: async () => ({ Component: (await import('@/routes/Shrine')).Shrine }),
+      },
+      {
+        path: 'chronicle',
+        lazy: async () => ({ Component: (await import('@/routes/Chronicle')).Chronicle }),
+      },
+      {
+        path: 'honours',
+        lazy: async () => ({ Component: (await import('@/routes/Honours')).Honours }),
+      },
+      {
+        path: 'survey',
+        lazy: async () => ({ Component: (await import('@/routes/Survey')).Survey }),
+      },
+      {
+        path: 'quartermaster',
+        lazy: async () => ({
+          Component: (await import('@/routes/Quartermaster')).Quartermaster,
+        }),
+      },
+      { path: 'plant', lazy: async () => ({ Component: (await import('@/routes/Plant')).Plant }) },
+      {
+        path: 'standard/:id',
+        lazy: async () => ({
+          Component: (await import('@/routes/StandardDetail')).StandardDetail,
+        }),
+      },
     ],
   },
 ])

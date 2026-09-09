@@ -9,13 +9,17 @@ is **the wind**: one force that moves everything at once, so a strong month is l
 single figure is.
 
 Local-first. No account, no server, no network request at runtime. Your record lives in your
-browser's IndexedDB and leaves the device only when you export it.
+browser's IndexedDB and leaves the device only when you export it — and once the app has been
+opened once, it works with no network at all.
 
 ```bash
 pnpm install
 pnpm dev
-pnpm check        # lint + typecheck + 210 tests + production build
+pnpm check        # lint + typecheck + 280 tests + production build
+pnpm e2e          # 30 journeys through a real browser
 ```
+
+CI runs all of it on every push and pull request to `main`.
 
 ## The surfaces
 
@@ -32,6 +36,8 @@ pnpm check        # lint + typecheck + 210 tests + production build
 | 具 | **THE QUARTERMASTER** | export, import, the five camps, still air, sound |
 
 `N` plant · `Q` dispatch · `H` `G` `F` `S` `T` `A` surfaces · `/` or `⌘K` the order book · `Esc` out.
+
+The war table is one listbox: arrow keys walk the field, `Enter` opens what they landed on.
 
 ## What it inherits
 
@@ -54,11 +60,17 @@ are now real tests. Any `goals.v1` data in your browser is detected and migrated
 ## Three rules worth knowing before you edit
 
 1. **The domain layer imports nothing.** Every rule about where you stand is a pure function.
-2. **Every mutation writes an event.** Momentum, rank, streaks, honours and the whole chronicle are
-   folds over one append-only log. Nothing derived is stored twice.
+2. **Every mutation writes an event, and every event knows what caused it.** Momentum, rank,
+   streaks, honours and the whole chronicle are folds over one log. Nothing derived is stored
+   twice, and everything one act produced carries that act's id — which is what lets a dispatch be
+   taken back completely rather than approximately.
 3. **Behind is never failure.** The product reports a distance and never scolds. There is no copy
    anywhere for having fallen short, and a quiet month is the quietest the interface ever gets.
+4. **No screen has to behave correctly for the record to stay sound.** Parent cycles, one-sided
+   ties, a target of zero, a gate marked passed above a figure that came back down — every shape
+   that must be impossible is refused in one place, `domain/invariants.ts`.
 
 ## Stack
 
-Vite · React 19 · TypeScript (strict) · Zustand · Dexie · Zod · React Three Fiber (lazy) · Vitest.
+Vite · React 19 · TypeScript (strict) · Zustand · Dexie · Zod · React Three Fiber (lazy) · Vitest ·
+Playwright. Installable, and offline once loaded.
