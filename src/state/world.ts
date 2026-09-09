@@ -13,7 +13,16 @@ import * as repo from '@/data/repo'
 import type { LogResult, Trash } from '@/data/repo'
 import { loadSettings, saveSettings } from '@/data/db'
 import { migrateLegacy } from '@/data/migrations'
-import { downloadBackup, importFile, type ImportReport } from '@/data/backup'
+import {
+  commitImport,
+  downloadBackup,
+  importFile,
+  previewImport,
+  restoreSnapshot,
+  takeSnapshot,
+  type ImportPreview,
+  type ImportReport,
+} from '@/data/backup'
 
 /**
  * The single in-memory copy of the world.
@@ -87,7 +96,15 @@ export interface WorldStore {
 
   updateSettings: (patch: Partial<Settings>) => Promise<void>
   exportBackup: () => Promise<void>
+  /** Read a file and say what it holds, WITHOUT writing anything. */
+  previewBackup: (file: File) => Promise<ImportPreview>
+  /** Commit what a preview showed. */
+  commitBackup: (preview: ImportPreview) => Promise<ImportReport>
   importBackup: (file: File) => Promise<ImportReport>
+  /** Take a local snapshot now. */
+  snapshot: () => Promise<void>
+  /** Go back to a snapshot, taking one of the present first. */
+  rollBack: (at: string) => Promise<ImportReport>
   /** Run the invariants over the stored world; returns what had to be fixed. */
   repair: () => Promise<string[]>
 
@@ -324,6 +341,26 @@ export const useWorld = create<WorldStore>((set, get) => {
 
     importBackup: async (file) => {
       const report = await importFile(file)
+      const settings = await loadSettings()
+      set({ settings, lastTrash: null, lastDispatch: null })
+      await refresh()
+      return report
+    },
+
+    previewBackup: (file) => previewImport(file),
+
+    commitBackup: async (preview) => {
+      await commitImport(preview)
+      const settings = await loadSettings()
+      set({ settings, lastTrash: null, lastDispatch: null })
+      await refresh()
+      return preview.incoming
+    },
+
+    snapshot: () => takeSnapshot(),
+
+    rollBack: async (at) => {
+      const report = await restoreSnapshot(at)
       const settings = await loadSettings()
       set({ settings, lastTrash: null, lastDispatch: null })
       await refresh()

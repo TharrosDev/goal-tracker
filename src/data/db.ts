@@ -102,6 +102,8 @@ export const META_KEYS = {
   migratedAt: 'migrated.v1.at',
   /** Rolling local snapshots, newest last. */
   snapshots: 'snapshots',
+  /** When a backup file was last written from this device. */
+  lastExport: 'backup.last.at',
 } as const
 
 export async function readMeta<T>(key: string, fallback: T): Promise<T> {
@@ -126,19 +128,67 @@ export interface Snapshot {
   at: string
   /** Serialised backup. Kept as a string so a corrupt object cannot poison the row. */
   json: string
+  /** Why it was taken. Shown in the snapshot browser so a list of dates means something. */
+  reason: 'automatic' | 'before import' | 'before repair' | 'by hand'
+  /** Standards held, for the browser to show without parsing the whole thing. */
+  goals: number
 }
 
-/** How many automatic snapshots to keep. Small: this is a recovery net, not history. */
-export const SNAPSHOT_LIMIT = 5
+/** How many snapshots to keep. Small: this is a recovery net, not a second history. */
+export const SNAPSHOT_LIMIT = 8
 
-export async function pushSnapshot(json: string): Promise<void> {
+/**
+ * A rolling local snapshot.
+ *
+ * These exist so the destructive acts in this product — import, repair, a wipe
+ * — are not one-way. They are NOT a backup: they live in the same IndexedDB as
+ * the record they protect, so clearing site data takes them too. That is what
+ * export is for, and the Quartermaster says so plainly rather than implying a
+ * safety net that is not there.
+ */
+export async function pushSnapshot(
+  json: string,
+  reason: Snapshot['reason'] = 'automatic',
+): Promise<void> {
   const list = await readMeta<Snapshot[]>(META_KEYS.snapshots, [])
-  const next = [...list, { at: new Date().toISOString(), json }].slice(-SNAPSHOT_LIMIT)
+  let goals = 0
+  try {
+    goals = (JSON.parse(json) as { goals?: unknown[] }).goals?.length ?? 0
+  } catch {
+    // A snapshot that will not parse is still worth keeping: something can be
+    // salvaged out of it by hand, and nothing can be salvaged out of a deletion.
+  }
+  const next = [...list, { at: new Date().toISOString(), json, reason, goals }].slice(
+    -SNAPSHOT_LIMIT,
+  )
   await writeMeta(META_KEYS.snapshots, next)
 }
 
 export const listSnapshots = (): Promise<Snapshot[]> =>
   readMeta<Snapshot[]>(META_KEYS.snapshots, [])
+
+/** Drop one snapshot, identified by its instant. */
+export async function forgetSnapshot(at: string): Promise<void> {
+  const list = await readMeta<Snapshot[]>(META_KEYS.snapshots, [])
+  await writeMeta(
+    META_KEYS.snapshots,
+    list.filter((s) => s.at !== at),
+  )
+}
+
+/**
+ * When a backup file was last written from this device.
+ *
+ * This is the only thing about backups that CAN be known locally: whether the
+ * file the browser was handed still exists, where it went, or whether it is
+ * readable is not knowable from here, and the interface must not pretend
+ * otherwise. It records that an export happened, and nothing more.
+ */
+export const readLastExport = (): Promise<string | null> =>
+  readMeta<string | null>(META_KEYS.lastExport, null)
+
+export const markExported = (): Promise<void> =>
+  writeMeta(META_KEYS.lastExport, new Date().toISOString())
 
 /** Wipe every record but keep the meta table's legacy backup and snapshots. */
 export async function clearRecords(): Promise<void> {

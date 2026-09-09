@@ -12,7 +12,16 @@ import {
 } from '@/domain/schema'
 import { normaliseWorld } from '@/domain/invariants'
 import { convertLegacyPayload } from './migrations'
-import { clearRecords, db, loadSettings, pushSnapshot, saveSettings } from './db'
+import {
+  clearRecords,
+  db,
+  listSnapshots,
+  loadSettings,
+  markExported,
+  pushSnapshot,
+  saveSettings,
+  type Snapshot,
+} from './db'
 import { now, today } from '@/domain/date'
 import { uid } from '@/domain/schema'
 
@@ -54,13 +63,20 @@ export const backupFilename = (): string => `ambition-${today()}.json`
 /** Hands the browser a file. The only place in the app that touches the DOM for data. */
 export async function downloadBackup(): Promise<string> {
   const json = serialise(await collect())
+  download(json, backupFilename())
+  // Records that an export happened, and nothing more. Whether the file still
+  // exists, or where it went, is not knowable from here — see readLastExport.
+  await markExported()
+  return json
+}
+
+function download(json: string, filename: string): void {
   const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
   const a = document.createElement('a')
   a.href = url
-  a.download = backupFilename()
+  a.download = filename
   a.click()
   URL.revokeObjectURL(url)
-  return json
 }
 
 export interface ImportReport {
@@ -194,9 +210,12 @@ function repair(data: Backup, report: ImportReport): Backup {
 }
 
 /** Replace everything. Snapshots the current state first, so this is undoable. */
-export async function restore(data: Backup): Promise<void> {
+export async function restore(
+  data: Backup,
+  reason: Snapshot['reason'] = 'before import',
+): Promise<void> {
   const current = await collect()
-  if (current.goals.length) await pushSnapshot(serialise(current))
+  if (current.goals.length) await pushSnapshot(serialise(current), reason)
 
   await clearRecords()
   await db.transaction(
@@ -228,8 +247,36 @@ export async function restore(data: Backup): Promise<void> {
   await saveSettings(data.settings)
 }
 
-/** Read a picked file end to end. Throws with a sentence a person can act on. */
+/**
+ * Read a picked file end to end and commit it. Throws with a sentence a person
+ * can act on. Prefer `previewImport` + `commitImport` anywhere a person is
+ * present to see the preview.
+ */
 export async function importFile(file: File): Promise<ImportReport> {
+  const preview = await previewImport(file)
+  await commitImport(preview)
+  return preview.incoming
+}
+
+// ── snapshots ───────────────────────────────────────────────────────────────
+
+/**
+ * What a file holds, WITHOUT writing any of it.
+ *
+ * Replacing a record is the most destructive thing this product can do, and it
+ * used to happen the instant a file was chosen. This is what the Quartermaster
+ * shows first: what is in the file, what is here now, and therefore what the
+ * exchange would cost.
+ */
+export interface ImportPreview {
+  incoming: ImportReport
+  /** What is here now, and would be replaced. */
+  current: { goals: number; milestones: number; entries: number; events: number }
+  /** The parsed, repaired world, ready to be committed if the person says so. */
+  data: Backup
+}
+
+export async function previewImport(file: File): Promise<ImportPreview> {
   let raw: unknown
   try {
     raw = JSON.parse(await file.text())
@@ -237,6 +284,43 @@ export async function importFile(file: File): Promise<ImportReport> {
     throw new Error(`${file.name} is not valid JSON`)
   }
   const { data, report } = parseBackup(raw)
-  await restore(data)
+  const here = await collect()
+  return {
+    incoming: report,
+    current: {
+      goals: here.goals.length,
+      milestones: here.milestones.length,
+      entries: here.entries.length,
+      events: here.events.length,
+    },
+    data,
+  }
+}
+
+/** Commit what a preview showed. Nothing is written until this is called. */
+export const commitImport = (preview: ImportPreview): Promise<void> => restore(preview.data)
+
+/** Take a snapshot now, because somebody asked for one. */
+export async function takeSnapshot(): Promise<void> {
+  await pushSnapshot(serialise(await collect()), 'by hand')
+}
+
+/**
+ * Go back to a snapshot. Snapshots the present first, so this is itself
+ * reversible — changing your mind about changing your mind is a real thing.
+ */
+export async function restoreSnapshot(at: string): Promise<ImportReport> {
+  const snapshot = (await listSnapshots()).find((s) => s.at === at)
+  if (!snapshot) throw new Error('that snapshot is no longer held')
+  const { data, report } = parseBackup(JSON.parse(snapshot.json))
+  await restore(data, 'before repair')
   return report
+}
+
+/** Hand a snapshot to the browser as a file, so it can leave the device. */
+export async function downloadSnapshot(at: string): Promise<void> {
+  const snapshot = (await listSnapshots()).find((s) => s.at === at)
+  if (!snapshot) throw new Error('that snapshot is no longer held')
+  download(snapshot.json, `ambition-snapshot-${at.slice(0, 10)}.json`)
+  await markExported()
 }

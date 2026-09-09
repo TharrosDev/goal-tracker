@@ -25,14 +25,28 @@ progress, XP, achievements, the identity of a goal — is a pure function over p
 why it can be exhaustively tested without a browser, and why the same numbers appear on every
 surface.
 
-**2. Every mutation writes an event.** `src/data/repo.ts` is the only place anything is written, and
-it writes the record and the timeline event describing it *in the same transaction*. Momentum, rank,
-merit, streaks, honours, the survey and the chronicle are all folds over that log. Nothing derived is
-stored, so nothing derived can drift.
+**2. Every mutation writes an event, and every event knows what caused it.** `src/data/repo.ts` is
+the only place anything is written, and it writes the record and the timeline event describing it *in
+the same transaction*. Momentum, rank, merit, streaks, honours, the survey and the chronicle are all
+folds over that log. Nothing derived is stored, so nothing derived can drift.
+
+This was a claim before it was a fact. Adding a gate, cutting a tie, reparenting, moving a target,
+changing the rhythm, declaring a siege, striking a standard — all of them used to happen in silence,
+or as a generic `edited`. The vocabulary in `EVENT_TYPES` is now specific enough that any change to
+the record can be explained later, and deliberately narrow enough that the chronicle is not a debug
+log: a settings change writes nothing, because it says nothing about the campaign.
+
+Every event a single act produces carries that act's id in `cause`. That is what makes an undo a
+reversal of the whole causal result rather than a subtraction. See DATA-MODEL.md.
 
 **3. No component recomputes a domain number.** `src/state/selectors.ts` is the single place records
 become what the interface displays. If two surfaces disagreed about whether a standard is behind, the
 product would be lying to somebody.
+
+**4. No screen has to behave correctly for the record to stay sound.** `src/domain/invariants.ts`
+holds every shape that must be impossible — parent cycles, one-sided ties, a target of zero, a gate
+marked passed above a figure that came back down. The repository calls it before it writes and import
+calls it on the way in, so a screen with a bug in it can produce a refusal but not a corruption.
 
 ## Data flow
 
@@ -49,7 +63,8 @@ product would be lying to somebody.
   Dexie / IndexedDB                src/data/db.ts
        │
        ▼
-  repo.syncAchievements()          re-derives honours, appends only the difference
+  repo.reconcileAchievements()     re-derives honours, writes the difference BOTH ways
+       │   (an honour earned by a dispatch that was undone is not held)
        │
        ▼
   store re-reads everything        cheap at this scale; the UI can never see a half-applied change
@@ -78,6 +93,7 @@ memoised selectors, **not** a second source of truth.
 | `domain/identity.ts` | Deterministic per-goal crest, dye and orbit from the goal's id. |
 | `domain/history.ts` | Folds for the chronicle and the survey: periods, runs, comebacks, records, houses. |
 | `domain/copy.ts` | The chronicle's voice, and the rule that behind is never failure. |
+| `domain/invariants.ts` | The shapes that cannot exist, and the one place they are prevented. |
 | `data/repo.ts` | Every mutation. The only writer. |
 | `data/migrations.ts` | `goals.v1` → v2. Copies, never moves. |
 | `data/backup.ts` | Export, and an import that salvages, quarantines and repairs. |
@@ -98,6 +114,11 @@ memoised selectors, **not** a second source of truth.
 - **No `setState` in an effect body.** Enforced by lint. Derive at render, or key the component.
 - **Nothing is stored that can be derived.** If you find yourself adding a cached field, check
   whether a fold over `events` gives it to you.
+- **The offline shell is not a cache of the user's data.** `public/sw.js` caches the document and
+  the hashed build assets, and nothing else. IndexedDB is the one canonical store; there is no second
+  copy of anybody's record anywhere. The worker's cache is named for the build id, which is stamped
+  onto its registration URL — a static `sw.js` at a fixed path would never update. A waiting version
+  is announced and taken when the person says so, never applied under them mid-dispatch.
 - **Never animate an ancestor of the WebGL canvas.** react-three-fiber renders no children until
   its container measures non-zero, and it may take that reading while a transform or an unresolved
   flex height is in flight — after which no genuine resize arrives to correct it. The result is a
@@ -105,17 +126,43 @@ memoised selectors, **not** a second source of truth.
   `resize={{ debounce: 0, scroll: false }}` and the scene is pinned to a resolved box; both files
   carry the warning.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push and every pull request to `main`: install pnpm, install
+with the frozen lockfile, then **lint, typecheck, test, build and the end-to-end suite**, each as its
+own named step so the failing one is visible in the job summary rather than buried in a log. The pnpm
+store is cached on the lockfile hash, a newer push to the same branch cancels the older run, and a
+failed end-to-end run uploads its Playwright report.
+
+Nothing in this repository depends on somebody remembering to run `pnpm check`.
+
+| | |
+|---|---|
+| `pnpm check` | lint + typecheck + test + build. What CI runs, minus the browser. |
+| `pnpm e2e` | the Playwright journeys, against a production build served by `vite preview`. |
+| `pnpm check:all` | both. |
+
 ## Testing
 
-`pnpm test` — 210 tests, Vitest, **forks pool** (the threads pool intermittently times out waiting
+`pnpm test` — Vitest, **forks pool** (the threads pool intermittently times out waiting
 for a worker on Windows and fails a green suite for no reason).
+
+`pnpm e2e` — Playwright, three projects: **desktop**, **phone** (Pixel 7) and **still-air** (reduced
+motion forced). Each test gets its own browser context, so IndexedDB is already empty and nothing has
+to be cleared between them — an init script that wiped storage would also wipe it on the second
+navigation inside a single test. The web server builds and previews: the thing shipped is the thing
+tested.
 
 What is covered: the inherited v1 arithmetic assertion-for-assertion, money rounding across a hundred
 writes, date maths across DST and leap boundaries, progress and completion for every kind, streaks,
 momentum's shape (steady beats bursty, recency beats age, never negative, never above one), the XP
 curve, all 23 honours, procedural identity's determinism, the field's line being exact for any span,
-the history folds, and persistence end to end — migration (including two concurrent boots),
-export/import round-trip, partial-corruption salvage, orphan removal, ledger repair, and undo.
+the history folds, every invariant in `domain/invariants.ts`, persistence end to end — migration
+(including two concurrent boots), export/import round-trip, partial-corruption salvage, orphan
+removal, ledger repair — and **undo as a causal reversal**: one gate, several gates, a completion, a
+personal record, gates and a completion together, an entry that is not the most recent, a `set`
+correction after it, a backdated dispatch, two dispatches inside the same millisecond, honours
+revoked and honours kept, and re-logging afterwards.
 
 ## Adding something
 

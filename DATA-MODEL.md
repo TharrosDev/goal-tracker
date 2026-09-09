@@ -8,11 +8,13 @@ and no copy but the user's. That is the whole reason this file is careful.
 | Store | Key | Indexes | What it holds |
 |---|---|---|---|
 | `goals` | `id` | kind, archived, paused, deadline, category, parentId, updatedAt, completedAt | The standards. |
-| `milestones` | `id` | goalId, order, done | Gates. |
+| `milestones` | `id` | goalId, order, done, **doneBy** | Gates. |
 | `entries` | `id` | goalId, at | The ledger — every dispatch. |
-| `events` | `id` | goalId, at, type | The chronicle. Append-only. |
+| `events` | `id` | goalId, at, type, **cause** | The chronicle. |
 | `achievements` | `id` | at | Honours unlocked. |
 | `meta` | `key` | — | Settings, snapshots, and the kept v1 blob. |
+
+Dexie version 3.
 
 Types are in `src/domain/types.ts`; the Zod schemas that guard every boundary are in
 `src/domain/schema.ts`.
@@ -32,6 +34,38 @@ the survey's figures, the chronicle's periods.
 **Merit is the one exception, and deliberately so.** `event.xp` is stamped at write time rather than
 recomputed, so tuning the curve later never rewrites what somebody already earned.
 
+## Cause: what one act did
+
+A dispatch is never only a number. One call to `logProgress` can move the figure, cross several
+gates, set a personal record, close the goal, pay merit on each of those, and unlock honours off the
+back of them.
+
+**The entry's own id is the act's id**, and everything that act produces carries it:
+
+| Field | On | Means |
+|---|---|---|
+| `event.cause` | every event the dispatch wrote | this event exists because of that dispatch |
+| `milestone.doneBy` | a gate the figure crossed | arithmetic passed this gate, not a person |
+| `goal.completedBy` | the goal it closed | a dispatch closed this, not a person |
+| `achievement.cause` | an honour it earned | this honour was earned by that dispatch |
+
+That is what makes `undoEntry` a reversal rather than an approximation. It deletes the events with
+that cause, unticks the gates with that `doneBy` — never one a person ticked by hand, which is a
+statement about the world rather than about the number — reopens the goal only if that act closed
+it, revokes the honours it earned, and then **replays the figure from the surviving ledger** rather
+than subtracting the amount back out. Replaying is the only thing that survives undoing a `set`
+correction, or undoing an entry that is not the most recent.
+
+The previous implementation matched events to acts by asking whether their timestamps fell within
+two seconds of each other. Two dispatches in the same second deleted each other's events.
+
+### The ledger's order
+
+`entry.seq` is a per-goal counter assigned at write time. `at` alone is not a total order — two
+dispatches can share a millisecond — and a `set` entry REPLACES the figure rather than adding to it,
+so an ambiguous order rebuilds to a different number each time. `ledgerOrder` in `progress.ts` sorts
+by `(at, seq)` and everything that replays the ledger uses it.
+
 ## Invariants
 
 1. A record and the event describing it are written in **one transaction** (`repo.ts`). The chronicle
@@ -40,8 +74,34 @@ recomputed, so tuning the curve later never rewrites what somebody already earne
    backdated dispatch lands on the day it belongs to. (This was a real bug: events stamped `now()`
    made momentum read 9 where seventeen dispatches over eighteen days should read 60.)
 3. Deleting hands back every removed row so it can be restored exactly, and detaches sub-goals rather
-   than destroying them.
-4. Nothing derived is stored.
+   than destroying them. The striking itself is recorded with **no goal id**, so it survives the
+   removal of every event that had one.
+4. Nothing derived is stored — except `event.xp`, above.
+5. **Merit is paid once.** An award is for a thing happening. Untick a gate and tick it again, or
+   reopen and retake a goal, and the event is written again but the merit is not. Without this the
+   rank ladder is a button rather than a record.
+
+## The shapes that cannot exist
+
+`src/domain/invariants.ts` is the one place these are enforced. The repository calls it before every
+write; import calls `normaliseWorld` on the way in. No screen has to behave correctly for the record
+to stay sound.
+
+| Refused or repaired | What it used to do |
+|---|---|
+| A goal that is its own parent, or inside a loop of ownership | Reachable in six clicks on the campaign; the goals in the loop vanished from the roll |
+| A tie to itself, a duplicate tie, a tie with only one end | A one-sided tie duplicated on the next toggle |
+| A parent or tie pointing at a goal that is gone | Silent, until something walked it |
+| A target of zero or less, or one that is not a number | `isDone` was true immediately while `fraction` read 0%: a standard enshrined at nought |
+| A figure below nought, or a percentage above its target | — |
+| A recurrence of zero times | The import schema refused the row, taking the goal and its whole ledger with it |
+| `done` and `completedAt` disagreeing | Half-taken |
+| A value gate marked passed above a figure that came back down | The runway lied |
+| A project whose parts are all done but which is not closed | The shrine showed TAKEN with no completion in the record |
+
+A cycle is broken at the edge that closes it rather than by dropping the goals in it: losing a
+relationship is recoverable, losing goals is not. Every repair is reported as a sentence a person can
+read — in the import report, and in the Quartermaster's integrity panel.
 
 ## Migration from the v1 almanac
 
@@ -82,6 +142,10 @@ Import never trusts its input:
   references to ids that do not exist.
 - **Ledgers reconciled.** Any cached total disagreeing with its ledger is rebuilt from it, and the
   count is reported.
+- **The whole shape put right.** `normaliseWorld` runs the full invariant pass above, and every
+  change it had to make is reported in `ImportReport.repairs` as a plain sentence.
+- **The restore is recorded.** An `imported` event is written after the rows, so the chronicle never
+  shows a record that simply begins.
 - **A snapshot first.** The existing world is serialised into `meta['snapshots']` (last five) before
   anything is overwritten.
 
@@ -89,9 +153,11 @@ It refuses only one thing: a file whose goals are all unreadable.
 
 ## Schema versioning
 
-`BACKUP_VERSION` is 2. Dexie's version is also 2 — v1 was localStorage-only and never had an
-IndexedDB store, so the numbering matches the data format rather than pretending there was a v1
-database.
+`BACKUP_VERSION` is 3, and so is Dexie's — v1 was localStorage-only and never had an IndexedDB
+store, so the numbering matches the data format rather than pretending there was a v1 database.
+Version 3 added `cause`, `doneBy`, `completedBy` and `seq`; the upgrade backfills them with null,
+which is the correct answer to "which dispatch owns this?" for a row written before the question
+could be asked.
 
 Unknown keys are stripped rather than rejected, so a backup from a newer build still imports what
 this build understands. One legacy alias survives in `schema.ts`: a Stage-1 build stored a free
