@@ -4,6 +4,20 @@
   border-top: var(--hair) solid var(--rule);
 }
 
+/* The row and its way in, side by side. Opening used to be double-click only. */
+.roll__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--tap);
+  align-items: stretch;
+  border-bottom: var(--hair) solid var(--rule-hair);
+}
+
+/* Standing with whatever is chosen. The scene lights the same formation; here
+   it is a rule in the margin, and a sentence for anybody who cannot see it. */
+.roll__pair.is-related {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
 .roll__row {
   width: 100%;
   min-height: var(--tap);
@@ -12,12 +26,29 @@
   align-items: center;
   gap: var(--s3);
   padding: var(--s2) 0;
-  border-bottom: var(--hair) solid var(--rule-hair);
   text-align: left;
 }
 
 .roll__row.is-selected .roll__title {
   color: var(--accent);
+}
+
+/* Chosen. Carried by FORM as well as colour, so it survives KURO. */
+.roll__row.is-selected {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.roll__open {
+  min-width: var(--tap);
+  color: var(--ink-faint);
+  font-size: var(--t-body);
+  border-left: var(--hair) solid var(--rule-hair);
+}
+
+.roll__open:hover,
+.roll__open:focus-visible {
+  color: var(--accent);
+  background: var(--field-focus);
 }
 
 .roll__title {
@@ -29,6 +60,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* A siege is named on the roll, because on the map it is named by its geometry
+   and a list has no geometry. */
+.roll__siege {
+  color: var(--accent);
+  letter-spacing: var(--tr-label);
 }
 
 .roll__figure {
@@ -57,15 +95,36 @@
   padding: var(--s8) 0;
 }
 
+/* Deeper than three and the indent is eating the titles. The tree still nests;
+   the rule in the margin is what carries the depth from here down. */
+.roll__entry--3 .roll__detachments {
+  padding-left: var(--s3);
+  margin-left: 4px;
+}
+
 @media (max-width: 900px) {
   .roll__row {
     grid-template-columns: 26px minmax(0, 1fr) auto;
     row-gap: 2px;
   }
+  /*
+   * The state WRAPS; it is not deleted.
+   *
+   * This surface is the peer of the scene, and a peer that drops a fact on a
+   * phone is a fallback. It moves under the title instead, beside the hour.
+   */
   .roll__state {
-    display: none;
+    grid-column: 2 / 3;
+    grid-row: 2;
   }
   .roll__hour {
-    grid-column: 2 / -1;
+    grid-column: 3 / -1;
+    grid-row: 2;
+    text-align: right;
+  }
+  .roll__figure {
+    grid-column: 3 / -1;
+    grid-row: 1;
+    text-align: right;
   }
 }

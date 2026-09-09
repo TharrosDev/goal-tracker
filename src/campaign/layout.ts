@@ -59,12 +59,23 @@ export function planCampaign(views: GoalView[]): CampaignPlan {
 
   const bodies: Pitched[] = []
 
+  /*
+   * The camp grows with what is pitched in it.
+   *
+   * A fixed outer radius was right for five standards and wrong for fifty: the
+   * same annulus had to hold ten times the tents, and a camp reads as a camp
+   * only while you can see the ground between them. It grows as the square root
+   * of the count, which is what keeps DENSITY roughly constant rather than the
+   * radius.
+   */
+  const outer = Math.max(OUTER, INNER + Math.sqrt(Math.max(roots.length, 1)) * 1.7)
+
   // Roots: angle from the id, radius from weight. Heaviest nearest the centre.
   const goldenAngle = Math.PI * (3 - Math.sqrt(5))
   roots.forEach((view, i) => {
     const jitter = ((hash(view.goal.id) % 1000) / 1000 - 0.5) * 0.6
     const angle = i * goldenAngle + jitter
-    const radius = INNER + (1 - view.weight) * (OUTER - INNER)
+    const radius = INNER + (1 - view.weight) * (outer - INNER)
     // A shallow height offset keeps the plan from reading as a flat disc without
     // making anything depend on depth to be understood.
     const lift = ((hash(view.goal.id + 'lift') % 1000) / 1000 - 0.5) * 2.4
@@ -82,28 +93,68 @@ export function planCampaign(views: GoalView[]): CampaignPlan {
     })
   })
 
-  // Detachments orbit whatever they belong to.
+  /*
+   * Detachments orbit whatever they belong to.
+   *
+   * They are pitched in DEPTH ORDER — every parent placed before its children —
+   * because a detachment's seat is measured from its parent's. Taking them in
+   * `views` order left a grandchild whose parent happened to come later in the
+   * list sitting at the world origin, halfway across the camp from the thing it
+   * belongs to.
+   */
+  const placed = new Map(bodies.map((b) => [b.view.goal.id, b]))
   const perParent = new Map<string, number>()
-  for (const view of children) {
-    const parentId = view.goal.parentId!
-    const index = perParent.get(parentId) ?? 0
-    perParent.set(parentId, index + 1)
+  const waiting = [...children]
 
-    const parent = bodies.find((b) => b.view.goal.id === parentId)
-    const orbit = orbitOf(view.goal, index)
-    const scale = 0.42 // detachments orbit close; they are not their own camps
+  while (waiting.length) {
+    const ready = waiting.filter((v) => placed.has(v.goal.parentId!))
+    // Nothing left whose parent is down: the rest are inside a loop the
+    // invariants would have broken, so pitch them as roots rather than lose them.
+    const batch = ready.length ? ready : waiting.slice()
 
-    bodies.push({
-      view,
-      x: parent?.x ?? 0,
-      y: parent?.y ?? 0,
-      z: parent?.z ?? 0,
-      size: sizeOf(view) * 0.7,
-      orbits: parentId,
-      spin: orbit.speed,
-      orbitRadius: orbit.radius * scale + (parent?.size ?? 0.5) + 0.6,
-      phase: orbit.phase,
-    })
+    for (const view of batch) {
+      waiting.splice(waiting.indexOf(view), 1)
+      const parentId = view.goal.parentId!
+      const index = perParent.get(parentId) ?? 0
+      perParent.set(parentId, index + 1)
+
+      const parent = placed.get(parentId)
+      const orbit = orbitOf(view.goal, index)
+      const scale = 0.42 // detachments orbit close; they are not their own camps
+      const orbitRadius = orbit.radius * scale + (parent?.size ?? 0.5) + 0.6
+
+      /*
+       * Its seat at rest, not its parent's.
+       *
+       * A detachment used to be pitched at its parent's exact coordinates, and
+       * the link lines are drawn between pitched coordinates — so every line
+       * from a detachment to what it belongs to was two identical points, which
+       * rasterises nothing. Belonging is one of the three things this surface
+       * exists to show, and it showed none of it. The real seat is where the
+       * orbit starts, which is also where the roll should say it is.
+       */
+      const seat = parent
+        ? {
+            x: parent.x + Math.cos(orbit.phase) * orbitRadius,
+            y: parent.y + Math.sin(orbit.phase * 0.5) * 0.3,
+            z: parent.z + Math.sin(orbit.phase) * orbitRadius,
+          }
+        : { x: 0, y: 0, z: 0 }
+
+      const body: Pitched = {
+        view,
+        x: seat.x,
+        y: seat.y,
+        z: seat.z,
+        size: sizeOf(view) * 0.7,
+        orbits: parent ? parentId : null,
+        spin: orbit.speed,
+        orbitRadius,
+        phase: orbit.phase,
+      }
+      bodies.push(body)
+      placed.set(view.goal.id, body)
+    }
   }
 
   const links: Link[] = []
@@ -137,17 +188,31 @@ function sizeOf(view: GoalView): number {
   return view.goal.boss ? Math.max(base * 1.8, 2.2) : base
 }
 
-/** Where a detachment actually sits at a given time. Pure, so the list agrees. */
-export function orbitPosition(
+/**
+ * Where a detachment sits at a given ANGLE around its parent.
+ *
+ * The angle is passed rather than derived from a rate and a clock, because the
+ * scene accumulates it: deriving it as `elapsed * rate` means every detachment
+ * jumps the instant the rate changes, and the rate here is momentum, which moves
+ * whenever anybody logs anything.
+ */
+export function orbitAt(
+  body: Pitched,
+  parent: Pitched | undefined,
+  angle: number,
+): { x: number; y: number; z: number } {
+  if (!body.orbits || !parent) return { x: body.x, y: body.y, z: body.z }
+  return {
+    x: parent.x + Math.cos(angle) * body.orbitRadius,
+    y: parent.y + Math.sin(angle * 0.5) * 0.3,
+    z: parent.z + Math.sin(angle) * body.orbitRadius,
+  }
+}
+
+/** Where a detachment sits after `seconds` at its own speed. Pure, so the list agrees. */
+export const orbitPosition = (
   body: Pitched,
   parent: Pitched | undefined,
   seconds: number,
-): { x: number; y: number; z: number } {
-  if (!body.orbits || !parent) return { x: body.x, y: body.y, z: body.z }
-  const a = body.phase + seconds * body.spin
-  return {
-    x: parent.x + Math.cos(a) * body.orbitRadius,
-    y: parent.y + Math.sin(a * 0.5) * 0.3,
-    z: parent.z + Math.sin(a) * body.orbitRadius,
-  }
-}
+): { x: number; y: number; z: number } =>
+  orbitAt(body, parent, body.phase + seconds * body.spin)

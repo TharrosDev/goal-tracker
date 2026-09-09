@@ -1,10 +1,10 @@
-import { useMemo, useRef } from 'react'
-import { Canvas, useFrame, type ThreeElements } from '@react-three/fiber'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Canvas, useFrame, useThree, type ThreeElements } from '@react-three/fiber'
 import { OrbitControls, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import type { CampaignPlan, Pitched } from './layout'
-import { orbitPosition } from './layout'
-import type { GoalState } from '@/domain/types'
+import { orbitAt } from './layout'
+import type { GoalState, WorldId } from '@/domain/types'
 
 /**
  * THE CAMPAIGN, pitched.
@@ -17,6 +17,23 @@ import type { GoalState } from '@/domain/types'
  * other, WHAT belongs to what, and WHO stands with whom. What it is not allowed
  * to do: be the only place any of that can be read. Every fact here is also in
  * the roll, which is a peer surface and not a fallback.
+ *
+ * THREE RULES THIS FILE LEARNED THE HARD WAY, all of them from bugs:
+ *
+ *   Nothing is constructed during render. A geometry or a material built in a
+ *   render body is a GPU allocation that react-three-fiber will never dispose,
+ *   because it refuses to dispose a <primitive> — its state may be held outside
+ *   React. The ties used to build three objects per link per render, and this
+ *   component re-renders on every click.
+ *
+ *   The frame loop SETS positions, it never adds to them. A wobble written as
+ *   `position.y += sin(t)` is a discrete sum of a sine, which carries a
+ *   permanent offset of roughly one over the frame period — two orders of
+ *   magnitude past the intended amplitude, and worse on a 120 Hz display.
+ *
+ *   Angles accumulate, they are not recomputed from `elapsed * rate`. Multiply
+ *   elapsed time by a rate that changes and every orbiting body teleports the
+ *   moment the rate does — which here is every time momentum moves.
  */
 
 /**
@@ -66,47 +83,80 @@ const STATE_TOKEN: Record<GoalState, string> = {
   completed: '--state-completed',
 }
 
+/**
+ * Every body's live transform, by goal id.
+ *
+ * The ties need to know where things actually ARE, which is not where the plan
+ * says they are pitched: a detachment is wherever its orbit has carried it this
+ * frame. One shared registry is how the two halves of the scene agree.
+ */
+type Registry = Map<string, THREE.Object3D>
+
 function Body({
   body,
   parent,
   selected,
+  related,
   intensity,
+  registry,
+  showLabel,
   onSelect,
   onOpen,
 }: {
   body: Pitched
   parent: Pitched | undefined
   selected: boolean
+  /** Tied to, or belonging to, whatever is selected. */
+  related: boolean
   intensity: number
+  registry: Registry
+  showLabel: boolean
   onSelect: () => void
   onOpen: () => void
 }) {
   const group = useRef<THREE.Group>(null)
+  /** Accumulated orbit angle. Never `elapsed * rate` — see the file comment. */
+  const angle = useRef(body.phase)
+  const wobble = useRef(0)
   const { view } = body
 
   const colour = useMemo(() => tokenColour(STATE_TOKEN[view.state], '#d8b25e'), [view.state])
   const dye = useMemo(() => tokenColour(`--dye-${view.dye + 1}`, '#4a7fc1'), [view.dye])
+  const accent = useMemo(() => tokenColour('--accent', '#d8b25e'), [])
 
-  useFrame((state) => {
+  const id = view.goal.id
+  useEffect(() => {
+    const object = group.current
+    if (!object) return
+    registry.set(id, object)
+    return () => {
+      registry.delete(id)
+    }
+  }, [registry, id])
+
+  useFrame((_, delta) => {
     const g = group.current
     if (!g) return
-    const t = state.clock.elapsedTime
 
-    if (body.orbits) {
-      const p = orbitPosition(body, parent, t * intensity)
-      g.position.set(p.x, p.y, p.z)
-    }
+    // Clamped: a tab that was hidden for a minute hands back a delta of sixty
+    // seconds, which would fling every detachment across the camp on the frame
+    // somebody comes back to it.
+    const step = Math.min(delta, 0.1) * intensity
+    angle.current += step * body.spin
+    wobble.current += step
+
+    // SET, never add. The base seat first, then whatever the state adds to it.
+    const seat = orbitAt(body, parent, angle.current)
+    g.position.set(seat.x, seat.y, seat.z)
 
     // PRESSURE: an unstable standard refuses to sit still. Amplitude comes from
     // the real deadline pressure, so it is invisible at a distance and
     // unmistakable up close — and it is never the only signal.
-    if (view.state === 'critical') {
-      g.position.x += Math.sin(t * 6) * 0.012 * view.pressure * intensity
-    }
+    if (view.state === 'critical')
+      g.position.x += Math.sin(wobble.current * 6) * 0.06 * view.pressure
+
     // DECAY: a quiet standard drifts.
-    if (view.state === 'stalled') {
-      g.position.y += Math.sin(t * 0.6) * 0.004 * intensity
-    }
+    if (view.state === 'stalled') g.position.y += Math.sin(wobble.current * 0.6) * 0.09
   })
 
   const props: ThreeElements['group'] = {
@@ -121,77 +171,174 @@ function Body({
     },
   }
 
+  const boss = view.goal.boss
+  const head = body.size * 2.4
+
   return (
     <group ref={group} {...props}>
       {/* The pole and the cloth: the same object as on the war table, standing
-          in three dimensions. Cloth height is progress, exactly as it is there. */}
+          in three dimensions. Cloth height is progress, exactly as it is there.
+          A SIEGE is built differently rather than coloured differently — a
+          thicker pole on a stepped stone base, which is what makes it read as a
+          castle from across the camp and survives KURO, where every state token
+          is a grey. */}
       <mesh position={[0, body.size * 1.2, 0]}>
-        <cylinderGeometry args={[0.028, 0.028, body.size * 2.4, 6]} />
+        <cylinderGeometry args={[boss ? 0.075 : 0.028, boss ? 0.1 : 0.028, head, boss ? 8 : 6]} />
         <meshBasicMaterial color={colour} />
       </mesh>
+
+      {boss && (
+        <>
+          {/* The keep: three courses, narrowing. */}
+          {[0, 1, 2].map((i) => (
+            <mesh key={i} position={[0, body.size * (0.1 + i * 0.16), 0]}>
+              <boxGeometry
+                args={[
+                  body.size * (0.95 - i * 0.2),
+                  body.size * 0.14,
+                  body.size * (0.95 - i * 0.2),
+                ]}
+              />
+              <meshBasicMaterial color={colour} wireframe />
+            </mesh>
+          ))}
+        </>
+      )}
 
       {/* The cloth hangs from the head of the pole and reaches DOWN by progress,
           so a full standard is a full banner — the same reading as the field. */}
       {view.fraction > 0 && (
         <mesh
-          position={[body.size * 0.44, body.size * 2.4 - (view.fraction * body.size * 2.1) / 2, 0]}
+          position={[
+            body.size * 0.44,
+            head - (view.fraction * body.size * 2.1) / 2,
+            0,
+          ]}
         >
           <planeGeometry args={[body.size * 0.82, view.fraction * body.size * 2.1]} />
           <meshBasicMaterial color={dye} side={THREE.DoubleSide} transparent opacity={0.9} />
         </mesh>
       )}
 
-      {/* The foot: a ring on the ground, sized by importance. */}
+      {/* The foot: a ring on the ground, sized by importance. It thickens when
+          the standard is chosen, and again — faintly — when it stands with
+          whatever is chosen, so a selection reads as a formation. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[body.size * 0.5, body.size * 0.5 + (selected ? 0.09 : 0.035), 32]} />
-        <meshBasicMaterial color={selected ? tokenColour('--accent') : colour} />
+        <ringGeometry
+          args={[
+            body.size * 0.5,
+            body.size * 0.5 + (selected ? 0.11 : related ? 0.07 : 0.035),
+            boss ? 4 : 32,
+          ]}
+        />
+        <meshBasicMaterial color={selected || related ? accent : colour} />
       </mesh>
 
       {/* The name. HTML rather than a texture: it stays crisp, it is selectable,
-          and it does not need a font atlas. */}
-      {/* No zIndexRange override: drei's default stacks these above the canvas,
-          and lowering it puts every name behind the thing it names. */}
-      <Html center distanceFactor={11} position={[0, body.size * 2.9, 0]} prepend>
-        <span className={`camp3d__label${selected ? ' is-selected' : ''}`}>{view.goal.title}</span>
-      </Html>
+          and it does not need a font atlas.
+
+          No `distanceFactor`: scaling names with distance put them at about
+          seven pixels at the far end of the camera's range, which is a label
+          nobody can read on the half of the scene that carries the information.
+          They hold a constant size instead, and a crowded camp labels what
+          matters rather than everything — the roll carries every name.
+
+          No zIndexRange override either: drei's default stacks these above the
+          canvas, and lowering it puts every name behind the thing it names. */}
+      {(showLabel || selected) && (
+        <Html center position={[0, body.size * 2.9, 0]} prepend>
+          <span className={`camp3d__label${selected ? ' is-selected' : ''}`}>
+            {view.goal.title}
+          </span>
+        </Html>
+      )}
     </group>
   )
 }
 
-/** Alliances and hierarchy, drawn as lines between feet. */
-function Links({ plan }: { plan: CampaignPlan }) {
-  const positions = useMemo(() => new Map(plan.bodies.map((b) => [b.view.goal.id, b])), [plan])
-  const colour = useMemo(() => tokenColour('--rule-strong', '#666'), [])
+/**
+ * Alliances and hierarchy, as ONE object.
+ *
+ * Every tie used to be its own THREE.Line built during render, with its own
+ * geometry and its own material, none of which were ever disposed. This is a
+ * single LineSegments over one buffer: two vertices per tie, positions rewritten
+ * each frame from where the bodies actually are, and colour carried per vertex
+ * so a selection can light its own formation without touching a material.
+ */
+function Ties({
+  plan,
+  registry,
+  selectedId,
+}: {
+  plan: CampaignPlan
+  registry: Registry
+  selectedId: string | null
+}) {
+  const count = plan.links.length
 
-  return (
-    <>
-      {plan.links.map((link) => {
-        const a = positions.get(link.from)
-        const b = positions.get(link.to)
-        if (!a || !b) return null
-        const points = [
-          new THREE.Vector3(a.x, a.y + 0.02, a.z),
-          new THREE.Vector3(b.x, b.y + 0.02, b.z),
-        ]
-        const geometry = new THREE.BufferGeometry().setFromPoints(points)
-        return (
-          <primitive
-            key={`${link.from}-${link.to}`}
-            object={
-              new THREE.Line(
-                geometry,
-                new THREE.LineBasicMaterial({
-                  color: colour,
-                  transparent: true,
-                  opacity: link.hierarchy ? 0.55 : 0.28,
-                }),
-              )
-            }
-          />
-        )
-      })}
-    </>
+  const geometry = useMemo(() => {
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 6), 3))
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(count * 6), 3))
+    return g
+  }, [count])
+
+  const material = useMemo(
+    () => new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9 }),
+    [],
   )
+
+  // The one place these are released. Nothing else in the scene allocates.
+  useEffect(() => () => geometry.dispose(), [geometry])
+  useEffect(() => () => material.dispose(), [material])
+
+  const palette = useMemo(
+    () => ({
+      hierarchy: tokenColour('--rule-strong', '#666'),
+      alliance: tokenColour('--rule', '#444'),
+      lit: tokenColour('--accent', '#d8b25e'),
+      dim: tokenColour('--rule-hair', '#222'),
+    }),
+    [],
+  )
+
+  const byId = useMemo(() => new Map(plan.bodies.map((b) => [b.view.goal.id, b])), [plan])
+
+  useFrame(() => {
+    if (!count) return
+    const positions = geometry.getAttribute('position') as THREE.BufferAttribute
+    const colours = geometry.getAttribute('color') as THREE.BufferAttribute
+
+    for (let i = 0; i < count; i += 1) {
+      const link = plan.links[i]!
+      const a = registry.get(link.from)
+      const b = registry.get(link.to)
+      const from = a?.position ?? byId.get(link.from)
+      const to = b?.position ?? byId.get(link.to)
+      if (!from || !to) continue
+
+      // Lifted off the ground so a tie is never coplanar with the grid.
+      positions.setXYZ(i * 2, from.x, from.y + 0.02, from.z)
+      positions.setXYZ(i * 2 + 1, to.x, to.y + 0.02, to.z)
+
+      const touches = selectedId !== null && (link.from === selectedId || link.to === selectedId)
+      const colour = selectedId === null
+        ? link.hierarchy
+          ? palette.hierarchy
+          : palette.alliance
+        : touches
+          ? palette.lit
+          : palette.dim
+
+      colours.setXYZ(i * 2, colour.r, colour.g, colour.b)
+      colours.setXYZ(i * 2 + 1, colour.r, colour.g, colour.b)
+    }
+    positions.needsUpdate = true
+    colours.needsUpdate = true
+  })
+
+  if (!count) return null
+  return <lineSegments geometry={geometry} material={material} frustumCulled={false} />
 }
 
 /**
@@ -206,29 +353,115 @@ function Ground({ extent }: { extent: number }) {
   // gridHelper's first argument is the grid's full WIDTH, not its radius, so
   // this has to be twice the extent or the camp stands outside its own ground.
   const size = Math.ceil(extent * 2.4)
-  return (
-    <gridHelper
-      args={[size, Math.max(4, Math.round(size / 2)), colour, colour]}
-      position={[0, -0.01, 0]}
-    />
+  const grid = useMemo(
+    () => new THREE.GridHelper(size, Math.max(4, Math.round(size / 2)), colour, colour),
+    [size, colour],
   )
+  useEffect(
+    () => () => {
+      grid.geometry.dispose()
+      const material = grid.material
+      if (Array.isArray(material)) material.forEach((m) => m.dispose())
+      else material.dispose()
+    },
+    [grid],
+  )
+  return <primitive object={grid} position={[0, -0.01, 0]} />
 }
+
+/**
+ * Choosing a standard moves the camera to it, rather than cutting.
+ *
+ * The move is the only thing in this scene that is about the person rather than
+ * about the data, and it is what makes the camp feel like somewhere you are
+ * standing. In still air it is not a move at all: the camera is simply already
+ * there, because a camera gliding across the screen is exactly the kind of
+ * motion somebody who asked for less of it was asking about.
+ */
+function Focus({
+  target,
+  extent,
+  animate,
+}: {
+  target: Pitched | null
+  extent: number
+  animate: boolean
+}) {
+  const controls = useThree((s) => s.controls) as { target: THREE.Vector3; update: () => void } | null
+  const want = useRef(new THREE.Vector3(0, extent * 0.22, 0))
+
+  useEffect(() => {
+    want.current.set(
+      target ? target.x : 0,
+      target ? target.y + target.size : extent * 0.22,
+      target ? target.z : 0,
+    )
+    if (!animate && controls) {
+      controls.target.copy(want.current)
+      controls.update()
+    }
+  }, [target, extent, animate, controls])
+
+  useFrame((_, delta) => {
+    if (!animate || !controls) return
+    if (controls.target.distanceToSquared(want.current) < 0.0004) return
+    controls.target.lerp(want.current, Math.min(1, delta * 3.2))
+    controls.update()
+  })
+
+  return null
+}
+
+/** Above this many standards, only what matters carries a name on the map. */
+const LABEL_ALL_UNDER = 22
 
 export default function CampaignScene({
   plan,
   selectedId,
   intensity,
+  world,
   onSelect,
   onOpen,
 }: {
   plan: CampaignPlan
   selectedId: string | null
-  /** Momentum-driven multiplier on every motion in the scene. */
+  /** Momentum-driven multiplier on every motion in the scene. Zero is still air. */
   intensity: number
+  /** The camp whose palette is in force. Re-reads the tokens when it changes. */
+  world: WorldId
   onSelect: (id: string | null) => void
   onOpen: (id: string) => void
 }) {
   const byId = useMemo(() => new Map(plan.bodies.map((b) => [b.view.goal.id, b])), [plan])
+  /*
+   * Held in state rather than a ref, because it is read during render to be
+   * handed down. A ref read in a render body is exactly the pattern the lint
+   * rule is there to catch, and a `useState` initialiser is the guarantee that
+   * the map is made once and keeps its identity for the life of the scene.
+   */
+  const [registry] = useState<Registry>(() => new Map())
+
+  /** Everything standing with what is chosen: its parent, its children, its ties. */
+  const related = useMemo(() => {
+    if (!selectedId) return new Set<string>()
+    const out = new Set<string>()
+    for (const link of plan.links)
+      if (link.from === selectedId) out.add(link.to)
+      else if (link.to === selectedId) out.add(link.from)
+    return out
+  }, [plan.links, selectedId])
+
+  const named = useMemo(() => {
+    if (plan.bodies.length <= LABEL_ALL_UNDER) return null
+    // A crowded camp names the heaviest standards and whatever is in play.
+    const heaviest = [...plan.bodies]
+      .sort((a, b) => b.view.weight - a.view.weight)
+      .slice(0, LABEL_ALL_UNDER)
+      .map((b) => b.view.goal.id)
+    return new Set([...heaviest, ...related, ...(selectedId ? [selectedId] : [])])
+  }, [plan.bodies, related, selectedId])
+
+  const still = intensity <= 0
 
   return (
     <Canvas
@@ -239,10 +472,13 @@ export default function CampaignScene({
        * the information.
        */
       camera={{ position: [0, plan.extent * 1.3, plan.extent * 1.85], fov: 38 }}
-      dpr={[1, 2]}
+      // A phone's pixel ratio is where this scene gets expensive, and nothing
+      // here is fine enough detail to need it: capped at 1.75.
+      dpr={[1, 1.75]}
       // The loop stops when nothing is moving and when the tab is hidden: there
-      // is no permanent render loop in this product.
-      frameloop={intensity > 0 ? 'always' : 'demand'}
+      // is no permanent render loop in this product. `demand` is genuinely
+      // reachable now — still air sets the intensity to zero.
+      frameloop={still ? 'demand' : 'always'}
       onPointerMissed={() => onSelect(null)}
       gl={{ antialias: true, alpha: true }}
       /*
@@ -257,32 +493,50 @@ export default function CampaignScene({
        */
       resize={{ debounce: 0, scroll: false }}
     >
-      <Ground extent={plan.extent} />
-      <Links plan={plan} />
-      {plan.bodies.map((body) => (
-        <Body
-          key={body.view.goal.id}
-          body={body}
-          parent={body.orbits ? byId.get(body.orbits) : undefined}
-          selected={body.view.goal.id === selectedId}
-          intensity={intensity}
-          onSelect={() => onSelect(body.view.goal.id)}
-          onOpen={() => onOpen(body.view.goal.id)}
-        />
-      ))}
+      {/* `world` is not read here; it is in the key so every colour memo in the
+          subtree is rebuilt when the camp changes. Reading a CSS custom property
+          is not something React can see, so the remount is the subscription. */}
+      <group key={world}>
+        <Ground extent={plan.extent} />
+        {plan.bodies.map((body) => (
+          <Body
+            key={body.view.goal.id}
+            body={body}
+            parent={body.orbits ? byId.get(body.orbits) : undefined}
+            selected={body.view.goal.id === selectedId}
+            related={related.has(body.view.goal.id)}
+            intensity={intensity}
+            registry={registry}
+            showLabel={named === null || named.has(body.view.goal.id)}
+            onSelect={() => onSelect(body.view.goal.id)}
+            onOpen={() => onOpen(body.view.goal.id)}
+          />
+        ))}
+        {/* After the bodies, so its frame callback reads positions this frame
+            rather than last one. */}
+        <Ties plan={plan} registry={registry} selectedId={selectedId} />
+      </group>
+
+      <Focus
+        target={selectedId ? (byId.get(selectedId) ?? null) : null}
+        extent={plan.extent}
+        animate={!still}
+      />
+
       <OrbitControls
         makeDefault
         /*
          * Aimed above the ground, not at it. The default target is the origin,
          * which centres the frame on an empty plane and pushes the standards —
-         * and the names floating above them — off the top edge.
+         * and the names floating above them — off the top edge. Once something
+         * is chosen, Focus owns the target.
          */
         target={[0, plan.extent * 0.22, 0]}
         enablePan
         minDistance={3}
         maxDistance={plan.extent * 3}
         maxPolarAngle={Math.PI * 0.49}
-        enableDamping
+        enableDamping={!still}
         dampingFactor={0.08}
       />
     </Canvas>

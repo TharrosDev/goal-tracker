@@ -4,7 +4,7 @@ import { useWorldView } from '@/state/useWorldView'
 import { useWorld } from '@/state/world'
 import { planCampaign } from '@/campaign/layout'
 import { CampaignRoll } from '@/campaign/CampaignRoll'
-import { useRenderTier } from '@/shell/prefs'
+import { supportsWebGL, useReducedMotion, useRenderTier } from '@/shell/prefs'
 import { ambientFor } from '@/design/motion'
 import { SURFACE } from '@/design/marks'
 import './campaign.css'
@@ -25,8 +25,20 @@ export function Campaign() {
   const tier = useRenderTier()
   const settings = useWorld((s) => s.settings)
   const updateSettings = useWorld((s) => s.updateSettings)
+  const reduced = useReducedMotion()
   const [selected, setSelected] = useState<string | null>(null)
+  /*
+   * Which reading is on screen.
+   *
+   * Initialised from the tier, and then owned by the person. It used to be read
+   * from the tier on first render and never written again, so SHOW THE CAMP
+   * ANYWAY changed the setting, changed the tier, and changed nothing on screen
+   * — while the banner that explained the roll disappeared along with the button
+   * the person had just pressed.
+   */
   const [showRoll, setShowRoll] = useState(tier === 'none')
+  /** True while the roll is on screen because the device or the setting chose it. */
+  const rollWasChosenForYou = tier === 'none'
 
   /**
    * Reorganising, from the map.
@@ -45,7 +57,16 @@ export function Campaign() {
 
   const live = useMemo(() => world.views.filter((v) => !v.goal.archived), [world.views])
   const plan = useMemo(() => planCampaign(live), [live])
-  const ambient = ambientFor(world.momentum.score, tier === 'none')
+  /*
+   * Still air is passed the REAL motion preference.
+   *
+   * This used to be `tier === 'none'`, which is only ever true when the scene is
+   * not mounted at all — so the one place the value was read, the scene, could
+   * never see it. Somebody who forced the camp on with reduced motion set got
+   * full-rate orbits, and the frame loop's `demand` branch was unreachable dead
+   * code. With the preference itself, still air genuinely means still.
+   */
+  const ambient = ambientFor(world.momentum.score, reduced)
 
   const scene = tier !== 'none' && !showRoll
   const chosen = world.byId.get(selected ?? '')
@@ -128,12 +149,23 @@ export function Campaign() {
         `!showRoll`, which is never true here, so the person was handed the roll
         with no explanation and no visible way back.
       */}
-      {tier === 'none' && (
+      {rollWasChosenForYou && (
         <p className="campaign__why label">
-          THE ROLL IS SHOWN BECAUSE THIS DEVICE OR YOUR MOTION SETTING ASKS FOR IT.{' '}
-          <button type="button" onClick={() => void updateSettings({ universeRenderer: 'webgl' })}>
-            SHOW THE CAMP ANYWAY
-          </button>
+          {supportsWebGL()
+            ? 'THE ROLL IS SHOWN BECAUSE THIS DEVICE OR YOUR MOTION SETTING ASKS FOR IT.'
+            : 'THE ROLL IS SHOWN BECAUSE THIS BROWSER CANNOT DRAW THE CAMP. NOTHING IS MISSING FROM IT.'}{' '}
+          {supportsWebGL() && (
+            <button
+              type="button"
+              onClick={() => {
+                // Both halves, or the setting changes and the screen does not.
+                void updateSettings({ universeRenderer: 'webgl' })
+                setShowRoll(false)
+              }}
+            >
+              SHOW THE CAMP ANYWAY
+            </button>
+          )}
         </p>
       )}
 
@@ -156,6 +188,7 @@ export function Campaign() {
               plan={plan}
               selectedId={selected}
               intensity={ambient.rate}
+              world={settings.world}
               onSelect={pick}
               onOpen={(id) => navigate(`/standard/${id}`)}
             />
