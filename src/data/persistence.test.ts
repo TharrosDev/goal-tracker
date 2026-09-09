@@ -186,8 +186,13 @@ describe('export and import', () => {
     expect(after.goals).toEqual(before.goals)
     expect(after.milestones).toEqual(before.milestones)
     expect(after.entries).toEqual(before.entries)
-    expect(after.events).toEqual(before.events)
     expect(after.achievements).toEqual(before.achievements)
+
+    // Every original event comes back untouched, and the restore adds one of
+    // its own so the chronicle can say where this record came from.
+    const carried = after.events.filter((e) => e.type !== 'imported')
+    expect(carried).toEqual(before.events)
+    expect(after.events.filter((e) => e.type === 'imported')).toHaveLength(1)
   })
 
   it('accepts a v1 almanac export as an import', async () => {
@@ -289,6 +294,7 @@ describe('repo mutations', () => {
         dueDate: null,
         done: false,
         doneAt: null,
+        doneBy: null,
         order: 0,
       },
       {
@@ -299,6 +305,7 @@ describe('repo mutations', () => {
         dueDate: null,
         done: false,
         doneAt: null,
+        doneBy: null,
         order: 1,
       },
     ])

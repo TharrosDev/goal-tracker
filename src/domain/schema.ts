@@ -19,9 +19,19 @@ export const goalLinkSchema = z.object({
   url: z.string().max(2000).default(''),
 })
 
+/**
+ * `times` is CLAMPED rather than rejected.
+ *
+ * A cleared number input hands the store `times: 0`, and a schema that refuses
+ * the row would take the whole goal — and its entire ledger — down with it on
+ * the next import. Zero has one obvious safe reading, so it gets read that way.
+ */
 export const recurrenceSchema = z.object({
   period: z.enum(['day', 'week', 'month']),
-  times: z.number().int().min(1).max(100),
+  times: z
+    .number()
+    .catch(1)
+    .transform((n) => Math.min(Math.max(Math.round(n) || 1, 1), 100)),
 })
 
 /**
@@ -49,6 +59,7 @@ export const goalSchema = z.preprocess(
     current: z.number().finite().default(0),
     done: z.boolean().default(false),
     completedAt: isoTime.nullable().default(null),
+    completedBy: z.string().nullable().default(null),
     startDate: isoDate,
     deadline: isoDate.nullable().default(null),
     category: z.string().max(60).nullable().default(null),
@@ -77,6 +88,7 @@ export const milestoneSchema = z.object({
   dueDate: isoDate.nullable().default(null),
   done: z.boolean().default(false),
   doneAt: isoTime.nullable().default(null),
+  doneBy: z.string().nullable().default(null),
   order: z.number().int().default(0),
 })
 
@@ -87,6 +99,7 @@ export const progressEntrySchema = z.object({
   amount: z.number().finite(),
   mode: z.enum(['delta', 'set']).default('delta'),
   note: z.string().max(2000).default(''),
+  seq: z.number().int().min(0).catch(0).default(0),
 })
 
 export const timelineEventSchema = z.object({
@@ -95,6 +108,7 @@ export const timelineEventSchema = z.object({
   type: z.enum(EVENT_TYPES),
   at: isoTime,
   xp: z.number().finite().default(0),
+  cause: z.string().nullable().default(null),
   data: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
 })
 
@@ -102,20 +116,26 @@ export const unlockedAchievementSchema = z.object({
   id: z.string().min(1),
   at: isoTime,
   value: z.number().finite().nullable().default(null),
+  cause: z.string().nullable().default(null),
 })
 
+/**
+ * Every field falls back rather than failing. Settings are preferences, not
+ * record: one unreadable value must never be the reason an import of somebody's
+ * entire campaign is refused.
+ */
 export const settingsSchema = z.object({
-  world: z.enum(WORLD_IDS).default('lacquer'),
-  sound: z.boolean().default(false),
-  reducedMotionOverride: z.boolean().nullable().default(null),
-  universeRenderer: z.enum(['auto', 'webgl', 'list']).default('auto'),
-  lastSeenAt: isoTime.nullable().default(null),
+  world: z.enum(WORLD_IDS).catch('lacquer').default('lacquer'),
+  sound: z.boolean().catch(false).default(false),
+  reducedMotionOverride: z.boolean().nullable().catch(null).default(null),
+  universeRenderer: z.enum(['auto', 'webgl', 'list']).catch('auto').default('auto'),
+  lastSeenAt: isoTime.nullable().catch(null).default(null),
 })
 
 export const DEFAULT_SETTINGS: Settings = settingsSchema.parse({})
 
 /** Current backup format version. Bump only when the shape changes. */
-export const BACKUP_VERSION = 2
+export const BACKUP_VERSION = 3
 
 export const backupSchema = z.object({
   format: z.literal('ambition-engine'),
@@ -196,6 +216,7 @@ export function makeGoal(input: NewGoal): Goal {
     current: 0,
     done: false,
     completedAt: null,
+    completedBy: null,
     startDate: input.startDate ?? today(),
     deadline: input.deadline || null,
     category: input.category?.trim() || null,
@@ -230,6 +251,7 @@ export function makeMilestone(
     dueDate: null,
     done: false,
     doneAt: null,
+    doneBy: null,
     order,
   }
 }

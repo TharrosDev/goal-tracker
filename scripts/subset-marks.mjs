@@ -12,6 +12,9 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync, statSync } from 'node:fs'
 
+// A DEV dependency: this is the only thing that reads it, it runs by hand, and
+// nothing it produces is fetched at runtime — the marks ship as the local
+// subset in src/design/fonts.
 const SOURCE = 'node_modules/@fontsource/noto-serif-jp/files/noto-serif-jp-japanese-600-normal.woff2'
 const OUTPUT = 'src/design/fonts/marks-600.woff2'
 

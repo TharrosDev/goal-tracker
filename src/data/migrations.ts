@@ -69,6 +69,7 @@ export function convertLegacyGoal(legacy: LegacyGoal): MigrationResult {
       id: uid(),
       goalId: goal.id,
       type: 'created',
+    cause: null,
       at: at(created),
       xp: xpFor('created', goal),
       data: { migrated: true, from: 'goals.v1' },
@@ -85,12 +86,14 @@ export function convertLegacyGoal(legacy: LegacyGoal): MigrationResult {
       amount: carried,
       mode: 'delta',
       note: 'carried over from the almanac',
+      seq: 1,
     })
     goal.current = carried
     events.push({
       id: uid(),
       goalId: goal.id,
       type: 'progress',
+      cause: null,
       at: stamp,
       xp: xpFor('progress', goal),
       data: { amount: carried, migrated: true },
@@ -106,6 +109,7 @@ export function convertLegacyGoal(legacy: LegacyGoal): MigrationResult {
       id: uid(),
       goalId: goal.id,
       type: 'completed',
+      cause: null,
       at: stamp,
       xp: xpFor('completed', goal),
       data: { migrated: true },

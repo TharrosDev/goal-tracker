@@ -173,9 +173,20 @@ export function applyEntry(goal: Goal, entry: Pick<ProgressEntry, 'amount' | 'mo
   return goal.kind === 'money' ? money(Math.max(bounded, 0)) : Math.max(bounded, 0)
 }
 
+/**
+ * THE LEDGER'S ORDER.
+ *
+ * By the instant first, then by the order it was written. The tie-break is not
+ * cosmetic: a 'set' correction REPLACES the figure, so two entries sharing a
+ * millisecond in an undefined order give two different totals. Everything that
+ * replays the ledger sorts with this, so they all agree.
+ */
+export const ledgerOrder = (a: ProgressEntry, b: ProgressEntry): number =>
+  a.at === b.at ? (a.seq ?? 0) - (b.seq ?? 0) : a.at.localeCompare(b.at)
+
 /** Rebuild `current` from the ledger. Used by import and corrupt-data repair. */
 export function recomputeCurrent(goal: Goal, entries: ProgressEntry[]): number {
-  const mine = entries.filter((e) => e.goalId === goal.id).sort((a, b) => a.at.localeCompare(b.at))
+  const mine = entries.filter((e) => e.goalId === goal.id).sort(ledgerOrder)
   let value = 0
   for (const e of mine) value = applyEntry({ ...goal, current: value }, e)
   return value

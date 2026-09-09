@@ -13,8 +13,18 @@ export function goal(overrides: Partial<Goal> & Partial<NewGoal> = {}): Goal {
   return { ...base, id: 'g1', createdAt: '2026-01-01T00:00:00.000Z', ...overrides } as Goal
 }
 
+let nextSeq = 0
 export function entry(at: string, amount = 10, goalId = 'g1'): ProgressEntry {
-  return { id: uid(), goalId, at: `${at}T12:00:00.000Z`, amount, mode: 'delta', note: '' }
+  nextSeq += 1
+  return {
+    id: uid(),
+    goalId,
+    at: `${at}T12:00:00.000Z`,
+    amount,
+    mode: 'delta',
+    note: '',
+    seq: nextSeq,
+  }
 }
 
 export function ev(
@@ -23,7 +33,7 @@ export function ev(
   xp = 0,
   goalId: string | null = 'g1',
 ): TimelineEvent {
-  return { id: uid(), goalId, type, at: `${at}T12:00:00.000Z`, xp, data: {} }
+  return { id: uid(), goalId, type, at: `${at}T12:00:00.000Z`, xp, cause: null, data: {} }
 }
 
 /** One entry per day across an inclusive date range. */

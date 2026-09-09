@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="A standard planted on the ground">
+  <!-- Maskable-safe: every mark sits inside the middle 80%, so a circular or
+       squircle mask cannot cut the standard off at its pole. -->
+  <rect width="512" height="512" fill="#0c1018"/>
+  <!-- the ground -->
+  <rect x="72" y="392" width="368" height="3" fill="#f2ede1" fill-opacity="0.42"/>
+  <!-- the line: expected progress equals elapsed span -->
+  <path d="M72 392 L440 152" stroke="#f2ede1" stroke-opacity="0.22" stroke-width="3" fill="none"/>
+  <!-- the pole -->
+  <rect x="196" y="112" width="10" height="280" fill="#d8b25e"/>
+  <!-- the cloth, hanging from the head of the pole -->
+  <rect x="206" y="112" width="132" height="190" fill="#4a7fc1"/>
+  <!-- the stencil cut into the cloth -->
+  <g fill="#0c1018" fill-opacity="0.5">
+    <rect x="206" y="146" width="132" height="8"/>
+    <rect x="206" y="196" width="132" height="8"/>
+    <rect x="206" y="246" width="132" height="8"/>
+  </g>
+  <!-- the mon -->
+  <circle cx="272" cy="196" r="34" fill="none" stroke="#f2ede1" stroke-width="7"/>
+  <circle cx="272" cy="196" r="11" fill="#f2ede1"/>
+  <!-- the foot -->
+  <rect x="176" y="386" width="50" height="9" fill="#d8b25e"/>
+</svg>

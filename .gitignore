@@ -6,3 +6,6 @@ coverage/
 Thumbs.db
 *.local
 .vercel
+*.tsbuildinfo
+playwright-report/
+test-results/

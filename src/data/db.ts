@@ -43,6 +43,53 @@ export class AmbitionDB extends Dexie {
       achievements: 'id, at',
       meta: 'key',
     })
+
+    /**
+     * v3 adds CAUSE.
+     *
+     * `events.cause` and `milestones.doneBy` carry the id of the dispatch that
+     * produced them, so an undo can find the complete causal result of one act
+     * by identity rather than by guessing at timestamps. Both are indexed
+     * because undo queries them directly. Rows written before this version have
+     * no cause and are backfilled with null, which is correct: nothing is known
+     * about what produced them, and an unindexable null is exactly the right
+     * answer to "which dispatch owns this?"
+     */
+    this.version(3)
+      .stores({
+        goals: 'id, kind, archived, paused, deadline, category, parentId, updatedAt, completedAt',
+        milestones: 'id, goalId, order, done, doneBy',
+        entries: 'id, goalId, at',
+        events: 'id, goalId, at, type, cause',
+        achievements: 'id, at',
+        meta: 'key',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('events')
+          .toCollection()
+          .modify((e: Record<string, unknown>) => {
+            e.cause ??= null
+          })
+        await tx
+          .table('milestones')
+          .toCollection()
+          .modify((m: Record<string, unknown>) => {
+            m.doneBy ??= null
+          })
+        await tx
+          .table('goals')
+          .toCollection()
+          .modify((g: Record<string, unknown>) => {
+            g.completedBy ??= null
+          })
+        await tx
+          .table('achievements')
+          .toCollection()
+          .modify((a: Record<string, unknown>) => {
+            a.cause ??= null
+          })
+      })
   }
 }
 

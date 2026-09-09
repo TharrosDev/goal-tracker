@@ -50,6 +50,12 @@ export interface WorldStore {
   ceremony: CeremonyCue | null
   /** The last destructive action, held for undo. */
   lastTrash: Trash | null
+  /**
+   * The last dispatch, held so it can be taken back. Cleared once the window
+   * closes — an undo you can still reach an hour later is a second way to
+   * corrupt the record, not a kindness.
+   */
+  lastDispatch: { entryId: string; goalId: string; title: string; at: number } | null
 
   boot: () => Promise<void>
   refresh: () => Promise<void>
@@ -58,8 +64,9 @@ export interface WorldStore {
   logProgress: (
     goalId: string,
     amount: number,
-    options?: { mode?: ProgressEntry['mode']; note?: string },
+    options?: { mode?: ProgressEntry['mode']; note?: string; at?: string },
   ) => Promise<LogResult>
+  /** Reverse a dispatch and everything it caused. See repo.undoEntry. */
   undoEntry: (entryId: string) => Promise<void>
   patchGoal: (id: string, patch: Partial<Goal>) => Promise<void>
   completeGoal: (id: string) => Promise<void>
@@ -69,6 +76,10 @@ export interface WorldStore {
   /** Let the undo window close without restoring. */
   forgetTrash: () => void
 
+  /** Take back the last dispatch, with everything it caused. */
+  undoLastDispatch: () => Promise<void>
+  forgetDispatch: () => void
+
   addMilestone: (goalId: string, title: string, at?: number | null) => Promise<void>
   setMilestoneDone: (id: string, done: boolean) => Promise<void>
   removeMilestone: (id: string) => Promise<void>
@@ -77,6 +88,8 @@ export interface WorldStore {
   updateSettings: (patch: Partial<Settings>) => Promise<void>
   exportBackup: () => Promise<void>
   importBackup: (file: File) => Promise<ImportReport>
+  /** Run the invariants over the stored world; returns what had to be fixed. */
+  repair: () => Promise<string[]>
 
   drainUnlocks: () => UnlockedAchievement[]
   clearCeremony: () => void
@@ -117,8 +130,8 @@ export const useWorld = create<WorldStore>((set, get) => {
    * Every mutation goes: write, re-derive achievements, re-read. Doing the read
    * last means the UI can never observe a half-applied change.
    */
-  const after = async () => {
-    const unlocked = await repo.syncAchievements()
+  const after = async (cause?: string) => {
+    const { unlocked } = await repo.reconcileAchievements(cause ?? null)
     await refresh()
     if (unlocked.length) set({ pendingUnlocks: [...get().pendingUnlocks, ...unlocked] })
   }
@@ -137,6 +150,7 @@ export const useWorld = create<WorldStore>((set, get) => {
     pendingUnlocks: [],
     ceremony: null,
     lastTrash: null,
+    lastDispatch: null,
 
     boot: () => {
       booting ??= (async () => {
@@ -174,7 +188,7 @@ export const useWorld = create<WorldStore>((set, get) => {
 
     logProgress: async (goalId, amount, options) => {
       const result = await repo.logProgress(goalId, amount, options)
-      await after()
+      await after(result.entry.id)
 
       // The tier is decided here, from what actually happened, so the shell
       // never has to work out how big a thing this was.
@@ -197,14 +211,31 @@ export const useWorld = create<WorldStore>((set, get) => {
           recovery: result.recovery,
           seq: (get().ceremony?.seq ?? 0) + 1,
         },
+        lastDispatch: {
+          entryId: result.entry.id,
+          goalId,
+          title: result.goal.title,
+          at: Date.now(),
+        },
       })
       return result
     },
 
     undoEntry: async (entryId) => {
       await repo.undoEntry(entryId)
+      set({ lastDispatch: null, ceremony: null })
       await refresh()
     },
+
+    undoLastDispatch: async () => {
+      const last = get().lastDispatch
+      if (!last) return
+      await repo.undoEntry(last.entryId)
+      set({ lastDispatch: null, ceremony: null })
+      await refresh()
+    },
+
+    forgetDispatch: () => set({ lastDispatch: null }),
 
     patchGoal: async (id, patch) => {
       await repo.patchGoal(id, patch)
@@ -294,9 +325,15 @@ export const useWorld = create<WorldStore>((set, get) => {
     importBackup: async (file) => {
       const report = await importFile(file)
       const settings = await loadSettings()
-      set({ settings })
+      set({ settings, lastTrash: null, lastDispatch: null })
       await refresh()
       return report
+    },
+
+    repair: async () => {
+      const changes = await repo.repairWorld()
+      await refresh()
+      return changes
     },
 
     clearCeremony: () => set({ ceremony: null }),

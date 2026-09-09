@@ -7,6 +7,7 @@ import { Palette } from './Palette'
 import { Dispatch } from './Dispatch'
 import { Ceremony } from './Ceremony'
 import { Undo } from './Undo'
+import { Renew } from './Renew'
 import './shell.css'
 
 /**
@@ -118,6 +119,7 @@ export function AppShell() {
       <Dispatch open={overlay === 'dispatch'} onClose={close} onLogged={() => {}} />
       <Ceremony />
       <Undo />
+      <Renew />
 
       {narrow && (
         <nav className="tabs" aria-label="Camp">

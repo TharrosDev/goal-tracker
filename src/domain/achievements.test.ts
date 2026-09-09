@@ -152,7 +152,7 @@ describe('newlyUnlocked', () => {
     const c = ctx({ goals: [goal()], entries: [entry('2026-06-01')] })
     const all = evaluate(c)
     expect(all.length).toBeGreaterThan(0)
-    const held = all.map((a) => ({ id: a.id, at: '2026-06-01T00:00:00.000Z', value: a.value }))
+    const held = all.map((a) => ({ id: a.id, at: '2026-06-01T00:00:00.000Z', value: a.value, cause: null }))
     expect(newlyUnlocked(c, held)).toHaveLength(0)
   })
 })

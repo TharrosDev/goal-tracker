@@ -10,10 +10,11 @@ import {
   unlockedAchievementSchema,
   salvage,
 } from '@/domain/schema'
-import { recomputeCurrent } from '@/domain/progress'
+import { normaliseWorld } from '@/domain/invariants'
 import { convertLegacyPayload } from './migrations'
 import { clearRecords, db, loadSettings, pushSnapshot, saveSettings } from './db'
-import { today } from '@/domain/date'
+import { now, today } from '@/domain/date'
+import { uid } from '@/domain/schema'
 
 /**
  * Backup, restore, and repair.
@@ -74,6 +75,8 @@ export interface ImportReport {
   legacy: boolean
   /** Goals whose cached total disagreed with their ledger and were repaired. */
   repaired: number
+  /** Everything the invariants had to put right, in plain sentences. */
+  repairs: string[]
 }
 
 /**
@@ -92,6 +95,7 @@ export function parseBackup(raw: unknown): { data: Backup; report: ImportReport 
     rejected: [],
     legacy: false,
     repaired: 0,
+    repairs: [],
   }
 
   if (Array.isArray(raw)) {
@@ -167,27 +171,26 @@ export function parseBackup(raw: unknown): { data: Backup; report: ImportReport 
 }
 
 /**
- * Drop orphans and reconcile cached totals against the ledger. A backup edited
- * by hand, or truncated mid-write, arrives here internally inconsistent.
+ * Put an arriving world right.
+ *
+ * A backup edited by hand, truncated mid-write, or exported by a build that had
+ * a bug in it arrives internally inconsistent — orphaned rows, cached totals
+ * that disagree with the ledger, ties with only one end, a goal inside a loop of
+ * ownership. The full invariant pass in `domain/invariants.ts` runs here, so
+ * import can never be the way a broken shape gets in, and the person is told in
+ * sentences what had to be changed.
  */
 function repair(data: Backup, report: ImportReport): Backup {
-  const ids = new Set(data.goals.map((g) => g.id))
-  const milestones = data.milestones.filter((m) => ids.has(m.goalId))
-  const entries = data.entries.filter((e) => ids.has(e.goalId))
-  const events = data.events.filter((e) => e.goalId === null || ids.has(e.goalId))
-
-  const goals = data.goals.map((goal) => {
-    const parentId = goal.parentId && ids.has(goal.parentId) ? goal.parentId : null
-    const linkedIds = goal.linkedIds.filter((id) => ids.has(id) && id !== goal.id)
-    // Only reconcile kinds whose number comes from the ledger; a percentage set
-    // by hand or a countdown has no entries to rebuild from.
-    const ledgerDriven = goal.kind !== 'countdown' && entries.some((e) => e.goalId === goal.id)
-    const rebuilt = ledgerDriven ? recomputeCurrent(goal, entries) : goal.current
-    if (ledgerDriven && Math.abs(rebuilt - goal.current) > 0.005) report.repaired += 1
-    return { ...goal, parentId, linkedIds, current: ledgerDriven ? rebuilt : goal.current }
-  })
-
-  return { ...data, goals, milestones, entries, events }
+  const fixed = normaliseWorld(data)
+  report.repairs = fixed.changes
+  report.repaired = fixed.changes.filter((c) => c.includes('disagreed with its dispatches')).length
+  return {
+    ...data,
+    goals: fixed.goals,
+    milestones: fixed.milestones,
+    entries: fixed.entries,
+    events: fixed.events,
+  }
 }
 
 /** Replace everything. Snapshots the current state first, so this is undoable. */
@@ -205,6 +208,21 @@ export async function restore(data: Backup): Promise<void> {
       await db.entries.bulkPut(data.entries)
       await db.events.bulkPut(data.events)
       await db.achievements.bulkPut(data.achievements)
+      // Written AFTER the rows, or it would be wiped by the very restore it
+      // describes. The chronicle should never show a record that simply begins.
+      await db.events.put({
+        id: uid(),
+        goalId: null,
+        type: 'imported',
+        at: now(),
+        xp: 0,
+        cause: null,
+        data: {
+          goals: data.goals.length,
+          entries: data.entries.length,
+          from: data.exportedAt,
+        },
+      })
     },
   )
   await saveSettings(data.settings)

@@ -57,6 +57,11 @@ export interface Goal {
   /** Explicit completion, for kinds a number cannot close. */
   done: boolean
   completedAt: ISOTime | null
+  /**
+   * The dispatch that closed this goal, when a dispatch closed it. Null when a
+   * person closed it by hand. Undo reverses a completion only when it owns it.
+   */
+  completedBy: string | null
 
   startDate: ISODate
   deadline: ISODate | null
@@ -96,6 +101,11 @@ export interface Milestone {
   dueDate: ISODate | null
   done: boolean
   doneAt: ISOTime | null
+  /**
+   * The dispatch that crossed this gate, when a dispatch crossed it. Null when
+   * it was ticked by hand — a hand-ticked gate is never rolled back by an undo.
+   */
+  doneBy: string | null
   order: number
 }
 
@@ -108,13 +118,46 @@ export interface ProgressEntry {
   /** 'delta' adds; 'set' replaces (used by percentage and correction). */
   mode: 'delta' | 'set'
   note: string
+  /**
+   * Position in this goal's ledger, assigned at write time and never reused.
+   *
+   * `at` alone is not a total order: two dispatches can share a millisecond, and
+   * a 'set' correction replaces rather than adds — so replaying the ledger in an
+   * ambiguous order can land on a different figure each time. The pair
+   * (`at`, `seq`) is total and deterministic, which is what makes rebuilding the
+   * figure from the ledger — on undo, on import, on repair — give one answer.
+   */
+  seq: number
 }
 
+/**
+ * THE EVENT VOCABULARY.
+ *
+ * Every meaningful change to the record writes one of these, and each one is
+ * specific enough that the chronicle can explain later what actually happened.
+ * The bar for adding one is that a reader would want it explained; the bar for
+ * NOT adding one is that the change says nothing about the campaign — settings,
+ * a selection, a scroll position.
+ *
+ * `edited` is retained for records written before the vocabulary existed. New
+ * writes use the specific type.
+ */
 export const EVENT_TYPES = [
   'created',
   'progress',
   'milestone',
+  'milestone_added',
+  'milestone_removed',
+  'milestone_reopened',
   'deadline_changed',
+  'target_changed',
+  'recurrence_changed',
+  'difficulty_changed',
+  'boss_declared',
+  'identity_changed',
+  'linked',
+  'unlinked',
+  'reparented',
   'paused',
   'resumed',
   'record',
@@ -122,9 +165,11 @@ export const EVENT_TYPES = [
   'reopened',
   'archived',
   'restored',
+  'struck',
+  'unstruck',
+  'imported',
   'edited',
   'note',
-  'level_up',
   'achievement',
 ] as const
 export type EventType = (typeof EVENT_TYPES)[number]
@@ -140,6 +185,16 @@ export interface TimelineEvent {
   at: ISOTime
   /** Awarded at write time so a curve change never rewrites history. */
   xp: number
+  /**
+   * THE ACTION THAT CAUSED THIS.
+   *
+   * One dispatch can produce a progress event, several gate events, a record
+   * and a completion. All of them carry the id of the ProgressEntry that caused
+   * them, which is what makes an undo able to reverse the whole causal result
+   * of one act instead of guessing at it by timestamp. Null for an event that
+   * is its own cause (a goal created, a field edited).
+   */
+  cause: string | null
   data: Record<string, string | number | boolean | null>
 }
 
@@ -148,6 +203,8 @@ export interface UnlockedAchievement {
   at: ISOTime
   /** Whatever number earned it, for the badge to display. */
   value: number | null
+  /** The action that earned it, so an undo can take back what it granted. */
+  cause: string | null
 }
 
 export interface Settings {
