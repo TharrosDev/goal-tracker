@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { freshDevice, open, plant } from './helpers'
 import type { Goal } from '../src/domain/types'
 import { readTable } from './helpers'
@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
   await freshDevice(page)
 })
 
-async function twoStandards(page: import('@playwright/test').Page) {
+async function twoStandards(page: Page) {
   await open(page)
   const a = await plant(page, { title: 'Road bike', kind: 'MONETARY', target: 2400 })
   const b = await plant(page, { title: 'Wheels fund', kind: 'MONETARY', target: 400 })

@@ -8,6 +8,7 @@ import { EVENT_COPY } from '@/domain/copy'
 import { dayOf, days, fmtDate, today } from '@/domain/date'
 import { value } from '@/domain/format'
 import { useReducedMotion } from './prefs'
+import { useFocusTrap } from './focus'
 import { sound } from './sound'
 import './ceremony.css'
 
@@ -45,6 +46,8 @@ function Sealing() {
 
   const [beat, setBeat] = useState(0)
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+  const panel = useRef<HTMLDivElement>(null)
+  const out = useRef<HTMLButtonElement>(null)
 
   // Honours unlocked by the same action ride along with this ceremony rather
   // than interrupting separately. Drained once, at mount.
@@ -64,8 +67,18 @@ function Sealing() {
   const big = cue.tier === 'taken' || cue.tier === 'siege'
   const beats = cue.tier === 'siege' ? 8 : cue.tier === 'taken' ? 3 : 1
 
+  /*
+   * STILL AIR IS NOT A FASTER FILM.
+   *
+   * The eight beats of a siege become eight STILLS, advanced by the person
+   * rather than by a timer, so it reads as a printed record of the victory
+   * instead of a reduced-motion apology for one. Nothing advances on its own
+   * and nothing closes on its own: somebody who asked for less motion did not
+   * ask for less time to read.
+   */
   useEffect(() => {
-    const step = cue.tier === 'siege' ? (reduced ? 1200 : 760) : cue.tier === 'taken' ? 700 : 900
+    if (reduced && big) return
+    const step = cue.tier === 'siege' ? 760 : cue.tier === 'taken' ? 700 : 900
     const handles = timers.current
     for (let i = 1; i < beats; i += 1) handles.push(setTimeout(() => setBeat(i), step * i))
     handles.push(setTimeout(() => clear(), step * beats + 400))
@@ -73,21 +86,32 @@ function Sealing() {
       handles.forEach(clearTimeout)
       handles.length = 0
     }
-  }, [cue.tier, beats, reduced, clear])
+  }, [cue.tier, beats, reduced, big, clear])
 
-  useEffect(() => {
-    if (!big) return
-    const skip = () => clear()
-    window.addEventListener('keydown', skip)
-    return () => window.removeEventListener('keydown', skip)
-  }, [big, clear])
+  /*
+   * The big tiers hold the keyboard, and the way out is the first thing focus
+   * lands on.
+   *
+   * This used to close on ANY keydown, which meant Tab closed it — so the skip
+   * button it offered could never be reached by the keyboard at all, and a
+   * screen reader was thrown out of the dialog on the first key it sent.
+   * Escape leaves; Space and Enter advance a still, or leave on the last one.
+   */
+  useFocusTrap(panel, { onEscape: clear, initial: out, enabled: big })
+
+  const advance = () => {
+    if (beat + 1 < beats) setBeat(beat + 1)
+    else clear()
+  }
 
   const merit = useMemo(() => cue.merit, [cue])
 
   // ── the small tiers ───────────────────────────────────────────────────────
+  // Said once, by the one live region in the shell (see Live.tsx). A region
+  // that arrives already carrying its text announces nothing.
   if (!big)
     return (
-      <div className={`sealing sealing--${cue.tier}`} role="status" aria-live="polite">
+      <div className={`sealing sealing--${cue.tier}`} aria-hidden="true">
         <span className="sealing__mark" aria-hidden="true">
           {cue.tier === 'gate' ? SURFACE.gate.mark : SURFACE.dispatch.mark}
         </span>
@@ -113,11 +137,19 @@ function Sealing() {
 
   return (
     <div
+      ref={panel}
       className={`fall fall--${cue.tier} fall--beat-${beat}${reduced ? ' fall--still' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label={`${goal?.title ?? 'A standard'} taken`}
       onPointerDown={clear}
+      onKeyDown={(e) => {
+        if (e.key !== ' ' && e.key !== 'Enter') return
+        // Let the button be a button: only the surrounding dialog advances.
+        if (e.target !== e.currentTarget) return
+        e.preventDefault()
+        advance()
+      }}
     >
       <div className="fall__inner">
         {cue.tier === 'siege' && <Castle beat={beat} reduced={reduced} />}
@@ -188,8 +220,17 @@ function Sealing() {
           </ul>
         )}
 
-        <button type="button" className="fall__skip label" onClick={clear}>
-          {reduced ? 'CLOSE' : 'ANY KEY TO CLOSE'}
+        <button
+          ref={out}
+          type="button"
+          className="fall__skip label"
+          onClick={reduced && beat + 1 < beats ? advance : clear}
+        >
+          {reduced
+            ? beat + 1 < beats
+              ? `NEXT — ${beat + 1} OF ${beats}`
+              : 'CLOSE'
+            : 'ESC TO CLOSE'}
         </button>
       </div>
     </div>

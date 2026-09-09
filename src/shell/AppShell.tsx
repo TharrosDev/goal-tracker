@@ -8,6 +8,7 @@ import { Dispatch } from './Dispatch'
 import { Ceremony } from './Ceremony'
 import { Undo } from './Undo'
 import { Renew } from './Renew'
+import { Live } from './Live'
 import './shell.css'
 
 /**
@@ -120,6 +121,9 @@ export function AppShell() {
       <Ceremony />
       <Undo />
       <Renew />
+      {/* Mounted for the life of the app, so it is in the document before anything
+          it has to announce arrives in it. See Live.tsx. */}
+      <Live />
 
       {narrow && (
         <nav className="tabs" aria-label="Camp">

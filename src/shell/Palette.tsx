@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useWorldView } from '@/state/useWorldView'
 import { SURFACE } from '@/design/marks'
 import { value } from '@/domain/format'
+import { useFocusTrap } from './focus'
 import './palette.css'
 
 /**
@@ -36,10 +37,11 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState('')
   const [cursor, setCursor] = useState(0)
   const input = useRef<HTMLInputElement>(null)
+  const panel = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    input.current?.focus()
-  }, [])
+  // The field takes the keyboard, Tab stays inside, and closing gives focus
+  // back to whatever opened the book.
+  useFocusTrap(panel, { onEscape: onClose, initial: input })
 
   const commands = useMemo<Command[]>(() => {
     const places: Command[] = [
@@ -103,6 +105,7 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
   return (
     <div className="palette" role="presentation" onPointerDown={onClose}>
       <div
+        ref={panel}
         className="palette__panel"
         role="dialog"
         aria-modal="true"

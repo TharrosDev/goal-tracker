@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useWorld } from '@/state/world'
 import { useWorldView } from '@/state/useWorldView'
 import { SURFACE } from '@/design/marks'
 import { value } from '@/domain/format'
 import type { LogResult } from '@/data/repo'
+import { useFocusTrap } from './focus'
 import './dispatch.css'
 
 /**
@@ -52,10 +53,13 @@ function DispatchBody({
   const [amount, setAmount] = useState('')
   const [busy, setBusy] = useState(false)
   const field = useRef<HTMLInputElement>(null)
+  const panel = useRef<HTMLFormElement>(null)
 
-  useEffect(() => {
-    field.current?.focus()
-  }, [])
+  // Escape closes the sheet from anywhere inside it, including from the amount
+  // field — which is where a person's hands already are, and which the shell's
+  // own global handler could not reach because this sheet is opened from a
+  // standard's own ground as well as from the shell.
+  useFocusTrap(panel, { onEscape: onClose, initial: field })
 
   const view = candidates.find((v) => v.goal.id === target) ?? null
   const quantified = view?.goal.target !== null && view?.goal.target !== undefined
@@ -84,6 +88,7 @@ function DispatchBody({
   return (
     <div className="dispatch" role="presentation" onPointerDown={onClose}>
       <form
+        ref={panel}
         className="dispatch__panel"
         onSubmit={submit}
         onPointerDown={(e) => e.stopPropagation()}

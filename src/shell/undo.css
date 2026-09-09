@@ -58,11 +58,48 @@
   line-height: 1;
 }
 
-@media (max-width: 900px) {
+/*
+ * Taking back a dispatch is an ordinary correction, not an alarm. It borrows
+ * the strike bar's shape so the gesture is learned once, and none of its
+ * colour: nothing has gone wrong, and the bar must not imply it has.
+ */
+.undo--dispatch {
+  border-left-color: var(--rule-strong);
+}
+
+.undo--dispatch .undo__clock {
+  background: linear-gradient(
+    to top,
+    var(--ink-faint) calc(var(--left) * 100%),
+    var(--rule) calc(var(--left) * 100%)
+  );
+}
+
+.undo__go--quiet {
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  color: var(--ink);
+}
+
+.undo__go--quiet:hover,
+.undo__go--quiet:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/*
+ * 640px, not 900px.
+ *
+ * The bottom navigation appears at the width `useNarrow` uses, and that is
+ * 640 — a layout breakpoint of 900 lifted these bars over a tab bar that is
+ * not there on a small laptop window, leaving a strip of empty ground under
+ * them and the bar floating in the middle of nothing.
+ */
+@media (max-width: 640px) {
   .undo {
     left: var(--s2);
     right: var(--s2);
-    bottom: calc(var(--bottom-nav) + var(--s2));
+    bottom: calc(var(--bottom-nav) + var(--s2) + env(safe-area-inset-bottom, 0px));
     max-width: none;
     flex-wrap: wrap;
   }
@@ -117,11 +154,11 @@
   line-height: 1;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 640px) {
   .renew {
     left: var(--s2);
     right: var(--s2);
-    bottom: calc(var(--bottom-nav) + var(--s2));
+    bottom: calc(var(--bottom-nav) + var(--s2) + env(safe-area-inset-bottom, 0px));
     max-width: none;
   }
 }
