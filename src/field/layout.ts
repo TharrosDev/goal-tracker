@@ -50,6 +50,22 @@ export interface FieldLayout {
   ground: number
   /** Tallest a cloth may be, px. */
   usable: number
+  /**
+   * Height of the roll of names below the plot, px. Zero unless compact — the
+   * names are under the standards at every other width.
+   */
+  rollBand: number
+  /**
+   * True when the field is too narrow to carry a name under every standard.
+   *
+   * The reading does not change — time still runs left to right, height is
+   * still progress, the diagonal is still exact. What changes is where the
+   * NAMES live: at this width they come out from under the standards and go
+   * into a roll below, cross-referenced by the mon, because a title set under
+   * a 92px cloth on a 390px screen either overprints its neighbour or wraps to
+   * four lines of three letters.
+   */
+  compact: boolean
 }
 
 /**
@@ -63,6 +79,8 @@ export interface FieldLayout {
  * standards floated a hundred pixels above the ground they stand on.
  */
 export const FOOT_BAND = 104
+/** The foot is not drawn in compact mode, so it needs only the datum ticks. */
+export const FOOT_BAND_COMPACT = 16
 export const RESERVE_BAND = 76
 /** Never let the plot collapse to nothing on a very short viewport. */
 const MIN_PLOT = 120
@@ -71,11 +89,26 @@ const HEADROOM = 56
 /** Cloth width at weight 0, and how much weight adds. DESIGN.md 9. */
 const MIN_WIDTH = 56
 const WIDTH_PER_WEIGHT = 120
+/**
+ * The same two numbers for a phone.
+ *
+ * Twelve standards at the full width need 1,100px and get 390. `resolveOverlaps`
+ * then walks the whole run back from the right edge and clamps it at zero, so
+ * every standard piles up on top of every other one and the field — the first
+ * thing anybody sees — becomes unreadable. Narrow poles keep the ORDER and the
+ * SPACING, which is the part of the reading that carries the information.
+ */
+const MIN_WIDTH_COMPACT = 10
+const WIDTH_PER_WEIGHT_COMPACT = 22
+/** Below this the field cannot carry a name under every standard. */
+export const COMPACT_UNDER = 560
 /** Standards never touch: the palisade is gapless, but poles stay distinct. */
 const MIN_GAP = 4
 
-export function widthOf(weight: number): number {
-  return Math.round(MIN_WIDTH + weight * WIDTH_PER_WEIGHT)
+export function widthOf(weight: number, compact = false): number {
+  return compact
+    ? Math.round(MIN_WIDTH_COMPACT + weight * WIDTH_PER_WEIGHT_COMPACT)
+    : Math.round(MIN_WIDTH + weight * WIDTH_PER_WEIGHT)
 }
 
 /**
@@ -126,12 +159,26 @@ export function layoutField(
   options: { width: number; height: number; at: ISODate },
 ): FieldLayout {
   const { width, height, at } = options
+  const compact = width > 0 && width < COMPACT_UNDER
 
   const reserve: GoalView[] = []
   const dated: Placed[] = []
 
   const hasReserve = views.some((v) => !v.goal.deadline)
-  const below = FOOT_BAND + (hasReserve ? RESERVE_BAND : 0)
+  /*
+   * In compact mode the roll carries BOTH the dated standards and the reserve,
+   * in the same order the arrow keys walk, so there is one list of names rather
+   * than two bands competing for the bottom of a phone screen. It takes a share
+   * of the height, floored so it always shows a couple of entries and capped so
+   * it never eats the plot it is describing.
+   */
+  const named = compact ? views.length : 0
+  const rollBand = compact
+    ? Math.max(0, Math.min(Math.round(height * 0.42), named * 44 + 8))
+    : 0
+  const below = compact
+    ? FOOT_BAND_COMPACT + rollBand
+    : FOOT_BAND + (hasReserve ? RESERVE_BAND : 0)
   const ground = Math.max(height - below, Math.min(MIN_PLOT, height))
   const usable = Math.max(ground - HEADROOM, 0)
 
@@ -141,7 +188,7 @@ export function layoutField(
       reserve.push(view)
       continue
     }
-    const w = widthOf(view.weight)
+    const w = widthOf(view.weight, compact)
     const centre = t * width
     dated.push({
       view,
@@ -162,6 +209,8 @@ export function layoutField(
     reserve: reserve.sort((a, b) => b.weight - a.weight),
     ground,
     usable,
+    rollBand,
+    compact,
   }
 }
 

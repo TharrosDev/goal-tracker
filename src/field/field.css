@@ -358,3 +358,97 @@
   font-size: var(--t-label);
   color: var(--ink-faint);
 }
+
+/* ── the field as a whole, focused ──────────────────────────────────────── */
+
+/*
+ * The listbox is the field, so the field is what shows focus. A ring around a
+ * whole viewport-sized region would be absurd; a rule along the ground is the
+ * same statement in this system's own language.
+ */
+.field:focus-visible {
+  outline: none;
+}
+
+.field:focus-visible .field__scale {
+  border-bottom-color: var(--accent);
+}
+
+/* ── the field at phone width ───────────────────────────────────────────── */
+
+/*
+ * The names come out from under the standards.
+ *
+ * At 390px a full-width standard is about a quarter of the screen, so five of
+ * them cannot stand side by side and `resolveOverlaps` piles them all against
+ * the left edge. The poles narrow to keep the ORDER and the SPACING — which is
+ * the part of the reading that carries the information — and the names go into
+ * a roll underneath, in the field's own left-to-right order, cross-referenced
+ * by the mon. The plot and the list are the same reading twice.
+ */
+.standard--compact .standard__cloth {
+  /* A narrow cloth has no room for a stencil; the dye still identifies it. */
+  background-image: none;
+}
+
+.standard--compact .standard__figure {
+  display: none;
+}
+
+.field__roll {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 4;
+  display: grid;
+  grid-auto-rows: max-content;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: var(--hair) solid var(--rule);
+  background: var(--ground);
+}
+
+.field__named {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 3.5rem auto;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  padding: 0 var(--s3);
+  border-bottom: var(--hair) solid var(--rule-hair);
+  cursor: pointer;
+}
+
+.field__named-title {
+  font-family: var(--font-display);
+  font-size: var(--t-label-lg);
+  font-variation-settings: 'wdth' var(--wdth-condensed);
+  text-transform: uppercase;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field__named-figure {
+  font-size: var(--t-label-lg);
+  color: var(--ink-dim);
+  text-align: right;
+}
+
+.field__named-hour {
+  color: var(--ink-faint);
+}
+
+/* Chosen. A rule in the margin, so it is not colour alone. */
+.field__named.is-selected {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.field__named.is-selected .field__named-title {
+  color: var(--accent);
+}
+
+/* The reserve is part of the same listbox now, so it needs the same pointer. */
+.reserve__item {
+  cursor: pointer;
+}

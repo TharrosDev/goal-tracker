@@ -27,9 +27,23 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
 
+  /*
+   * Three projects, and only the DESKTOP one runs everything.
+   *
+   * A phone has no rail to click and a still-air run has no ceremony to sit
+   * through, so running the whole suite three times would mostly be measuring
+   * how well the specs guess which chrome they are looking at. Each of the other
+   * two runs the specs written for it — and specs that need a second width for
+   * one assertion use `test.use({ viewport })` inside their own describe block,
+   * which is cheaper and says what it is doing.
+   */
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
-    { name: 'phone', use: { ...devices['Pixel 7'] } },
+    {
+      name: 'desktop',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+      testIgnore: ['**/mobile.spec.ts', '**/still-air.spec.ts'],
+    },
+    { name: 'phone', use: { ...devices['Pixel 7'] }, testMatch: '**/mobile.spec.ts' },
     {
       name: 'still-air',
       use: {
@@ -38,6 +52,7 @@ export default defineConfig({
         // The whole product has a reduced-motion path; it is tested, not assumed.
         reducedMotion: 'reduce',
       },
+      testMatch: '**/still-air.spec.ts',
     },
   ],
 

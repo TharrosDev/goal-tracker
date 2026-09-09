@@ -19,14 +19,19 @@ export function Standard({
   selected,
   onSelect,
   onOpen,
-  tabIndex,
+  compact,
   index,
 }: {
   placed: Placed
   selected: boolean
   onSelect: () => void
   onOpen: () => void
-  tabIndex: number
+  /**
+   * The field is too narrow to carry a name under every standard, so the foot
+   * is not drawn and the names live in the roll below. Nothing else changes:
+   * position is still time, height is still progress, the line is still exact.
+   */
+  compact: boolean
   /** Position in the field, for the arrival stagger. */
   index: number
 }) {
@@ -58,6 +63,7 @@ export function Standard({
         // DECAY: gone quiet. The quietest thing on the field, never the loudest.
         state === 'stalled' ? 'decay' : '',
         selected ? 'is-selected' : '',
+        compact ? 'standard--compact' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -80,22 +86,26 @@ export function Standard({
           '--stencil-weight': `${1 + (sigil.symmetry % 3)}px`,
         } as React.CSSProperties
       }
-      role="option"
-      aria-selected={selected}
-      tabIndex={tabIndex}
+      /*
+       * The id the field's `aria-activedescendant` points at. It used to point
+       * at the bare goal id, which was on no element in the document — so the
+       * listbox announced nothing whatsoever as the arrows walked it.
+       *
+       * At phone width the name is not here — it is in the roll below — so the
+       * OPTION is there too and this pole is a mark. Exactly one option per
+       * standard exists in the document at any width.
+       */
+      {...(compact
+        ? { 'aria-hidden': true as const }
+        : { id: `standard-${goal.id}`, role: 'option', 'aria-selected': selected })}
       onClick={onSelect}
       onDoubleClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onOpen()
-        }
-      }}
     >
       {/* One accessible sentence per standard. A sighted reader gets the same
           information from position and height; this is the equivalent, not a
-          summary of it. */}
-      <span className="sr-only">
+          summary of it. At phone width it belongs to the roll's option instead,
+          so it is not said twice. */}
+      <span className="sr-only" hidden={compact}>
         {goal.title}. {mark.name}. {figure}.{' '}
         {arrival ? arrival.text : 'no hour set, held in reserve'}.
         {placed.behind ? ` ${Math.round((view.paceGap ?? 0) * 100)} points behind the line.` : ''}
@@ -125,11 +135,20 @@ export function Standard({
         {Math.round(fraction * 100)}
       </span>
 
-      <div className="standard__foot" aria-hidden="true">
-        <Mon sigil={sigil} kind={goal.kind} state={state} fraction={fraction} dye={dye} size={34} />
-        <span className="standard__title">{goal.title}</span>
-        <span className="standard__arrival">{arrival ? arrival.text : sigil.callsign}</span>
-      </div>
+      {!compact && (
+        <div className="standard__foot" aria-hidden="true">
+          <Mon
+            sigil={sigil}
+            kind={goal.kind}
+            state={state}
+            fraction={fraction}
+            dye={dye}
+            size={34}
+          />
+          <span className="standard__title">{goal.title}</span>
+          <span className="standard__arrival">{arrival ? arrival.text : sigil.callsign}</span>
+        </div>
+      )}
     </li>
   )
 }

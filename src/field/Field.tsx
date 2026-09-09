@@ -14,9 +14,17 @@ import './field.css'
  * now. There is no panel here to delete — every element is a position, a height
  * or a force.
  *
- * Interaction model: a listbox. Arrow keys walk the standards in field order,
- * Enter opens, and the selected standard is announced with a full sentence, so
- * the spatial reading has a real equivalent rather than a summary of one.
+ * INTERACTION MODEL: one listbox over the WHOLE field.
+ *
+ * Not one over the standards and a set of loose buttons under it, which is what
+ * it was. Arrow keys walked into the reserve while focus stayed behind in the
+ * plot, so the thing that was selected and the thing that Enter opened were two
+ * different standards — and `aria-activedescendant` pointed at an id that was
+ * on no element in the document, so a screen reader was told nothing at all.
+ *
+ * The container holds focus; the options never take it. That is the pattern
+ * `aria-activedescendant` exists for, and it is what lets the reserve and the
+ * plot be one selection even though they are two places on the screen.
  */
 export function Field({
   views,
@@ -85,6 +93,14 @@ export function Field({
         e.preventDefault()
         onSelect(order.at(-1) ?? null)
         break
+      case 'Enter':
+      case ' ':
+        // Opens whatever is SELECTED, which is now always the same thing the
+        // arrows moved to, wherever on the field it happens to stand.
+        if (!selectedId) return
+        e.preventDefault()
+        onOpen(selectedId)
+        break
     }
   }
 
@@ -92,7 +108,18 @@ export function Field({
   const ready = size.width > 0
 
   return (
-    <div className="field" ref={ref} onKeyDown={onKeyDown}>
+    <div
+      className={`field${layout.compact ? ' field--compact' : ''}`}
+      ref={ref}
+      // The listbox is the whole field, and it is what takes the keyboard. It
+      // is reachable on a cold load, before anything has been selected, which
+      // it was not when every option carried tabIndex -1 until one was.
+      role="listbox"
+      tabIndex={0}
+      aria-label="Standards, left to right by how far each is through its own span. Arrow keys walk the field; Enter opens."
+      aria-activedescendant={selectedId ? `standard-${selectedId}` : undefined}
+      onKeyDown={onKeyDown}
+    >
       {/* The scale. Real marks at real positions — the field is an instrument,
           and an instrument that hides its scale is a decoration. */}
       <div className="field__scale" aria-hidden="true">
@@ -128,53 +155,106 @@ export function Field({
         </svg>
       )}
 
-      <ul
-        className="field__standards"
-        role="listbox"
-        aria-label="Standards, left to right by how far each is through its own span"
-        aria-activedescendant={selectedId ?? undefined}
-        style={{ height: `${layout.ground}px` }}
-      >
+      {/* Presentational: the options belong to the field, not to this list. */}
+      <ul className="field__standards" role="presentation" style={{ height: `${layout.ground}px` }}>
         {layout.dated.map((placed, i) => (
           <Standard
             key={placed.view.goal.id}
             index={i}
             placed={placed}
+            compact={layout.compact}
             selected={placed.view.goal.id === selectedId}
             onSelect={() => onSelect(placed.view.goal.id)}
             onOpen={() => onOpen(placed.view.goal.id)}
-            tabIndex={placed.view.goal.id === selectedId ? 0 : -1}
           />
         ))}
       </ul>
 
-      {layout.reserve.length > 0 && (
+      {!layout.compact && layout.reserve.length > 0 && (
         <div className="field__reserve" style={{ minHeight: `${RESERVE_BAND}px` }}>
-          <span className="label">RESERVE — NOT ON A CLOCK</span>
-          <ul>
+          <span className="label" aria-hidden="true">
+            RESERVE — NOT ON A CLOCK
+          </span>
+          <ul role="presentation">
             {layout.reserve.map((v) => (
-              <li key={v.goal.id}>
-                <button
-                  type="button"
-                  className={`reserve__item${v.goal.id === selectedId ? ' is-selected' : ''}`}
-                  onClick={() => onSelect(v.goal.id)}
-                  onDoubleClick={() => onOpen(v.goal.id)}
-                >
-                  <Mon
-                    sigil={v.sigil}
-                    kind={v.goal.kind}
-                    state={v.state}
-                    fraction={v.fraction}
-                    dye={v.dye}
-                    size={22}
-                  />
-                  <span className="reserve__title">{v.goal.title}</span>
-                  <span className="reserve__figure num">{Math.round(v.fraction * 100)}%</span>
-                </button>
+              <li
+                key={v.goal.id}
+                id={`standard-${v.goal.id}`}
+                role="option"
+                aria-selected={v.goal.id === selectedId}
+                className={`reserve__item${v.goal.id === selectedId ? ' is-selected' : ''}`}
+                onClick={() => onSelect(v.goal.id)}
+                onDoubleClick={() => onOpen(v.goal.id)}
+              >
+                <Mon
+                  sigil={v.sigil}
+                  kind={v.goal.kind}
+                  state={v.state}
+                  fraction={v.fraction}
+                  dye={v.dye}
+                  size={22}
+                />
+                <span className="reserve__title">{v.goal.title}</span>
+                <span className="reserve__figure num">{Math.round(v.fraction * 100)}%</span>
+                <span className="sr-only">In reserve, on no clock.</span>
               </li>
             ))}
           </ul>
         </div>
+      )}
+
+      {/*
+        THE ROLL OF THE FIELD.
+
+        Only at phone width. The names have come out from under the standards so
+        the poles can stand close enough together to still be a field, and this
+        is where they went — in the field's own order, left to right, with the
+        reserve after them exactly as the arrow keys walk it. The plot and the
+        list are the same reading twice, and the mon is what ties one to the
+        other.
+
+        These carry the option role at this width, because they are where the
+        names are; the poles above are then presentational marks. There is still
+        exactly one option per standard in the document.
+      */}
+      {layout.compact && order.length > 0 && (
+        <ol
+          className="field__roll"
+          role="presentation"
+          style={{ height: `${layout.rollBand}px` }}
+        >
+          {[...layout.dated.map((p) => p.view), ...layout.reserve].map((v) => (
+            <li
+              key={v.goal.id}
+              id={`standard-${v.goal.id}`}
+              role="option"
+              aria-selected={v.goal.id === selectedId}
+              className={`field__named${v.goal.id === selectedId ? ' is-selected' : ''}`}
+              onClick={() => onSelect(v.goal.id)}
+              onDoubleClick={() => onOpen(v.goal.id)}
+            >
+              <Mon
+                sigil={v.sigil}
+                kind={v.goal.kind}
+                state={v.state}
+                fraction={v.fraction}
+                dye={v.dye}
+                size={20}
+              />
+              <span className="field__named-title">{v.goal.title}</span>
+              <span className="field__named-figure num">{Math.round(v.fraction * 100)}</span>
+              <span className="field__named-hour label">
+                {v.arrival ? v.arrival.text : 'RESERVE'}
+              </span>
+              {/* The same sentence the standard carries at full width. */}
+              <span className="sr-only">
+                {Math.round(v.fraction * 100)} per cent.{' '}
+                {v.arrival ? v.arrival.text : 'No hour set, held in reserve'}.
+                {v.behind ? ` ${Math.round((v.paceGap ?? 0) * 100)} points behind the line.` : ''}
+              </span>
+            </li>
+          ))}
+        </ol>
       )}
     </div>
   )
