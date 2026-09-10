@@ -81,7 +81,7 @@ export function Dojo() {
   }
 
   return (
-    <div className="dojo enter">
+    <div className="dojo" data-running={running}>
       <header className="dojo__head">
         <label className="dojo__pick">
           <span className="sr-only">Which standard</span>
@@ -126,6 +126,15 @@ export function Dojo() {
           </p>
         )}
 
+        <div className="dojo__incense" aria-hidden="true">
+          {Array.from({ length: 30 }, (_, i) => (
+            <i
+              key={i}
+              className={i < Math.min(30, Math.floor(elapsed / 60)) ? 'is-held' : undefined}
+            />
+          ))}
+        </div>
+        <p className="label">{Math.floor(elapsed / 60)} MINUTES HELD · EACH MARK IS ONE MINUTE</p>
         <div className="dojo__clock">
           <p className="mega num dojo__time" aria-live="off">
             {clock}

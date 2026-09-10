@@ -6,6 +6,7 @@ import { activityByDay } from '@/state/selectors'
 import { SURFACE } from '@/design/marks'
 import { fmtDate, today } from '@/domain/date'
 import './surface.css'
+import { CampaignIntel } from '@/cinema/CampaignIntel'
 
 /**
  * THE SURVEY (検) — what the record actually says.
@@ -61,6 +62,7 @@ export function Survey() {
         </div>
       </header>
 
+      <CampaignIntel views={world.live} />
       <section className="surface__answers">
         <Measure
           label="CONSISTENCY"

@@ -7,13 +7,7 @@ import type {
 } from '@/domain/types'
 import { makeGoal, makeMilestone, uid, type NewGoal } from '@/domain/schema'
 import { dayOf, days, now, today } from '@/domain/date'
-import {
-  applyEntry,
-  daysSinceProgress,
-  isDone,
-  ledgerOrder,
-  streakLength,
-} from '@/domain/progress'
+import { applyEntry, daysSinceProgress, isDone, ledgerOrder, streakLength } from '@/domain/progress'
 import {
   canLink,
   canParent,
@@ -133,7 +127,7 @@ export async function createGoal(
   })
 
   await db.transaction('rw', [db.goals, db.milestones, db.events], async () => {
-    await db.goals.put(goal)
+    await db.goals.add(goal)
     if (milestones.length) await db.milestones.bulkPut(milestones)
     await db.events.put(created)
   })
@@ -307,9 +301,7 @@ export async function logProgress(
     )
   }
   if (uncompleted)
-    events.push(
-      event('reopened', goalId, 0, { reason: drift!.reason }, stamp, cause),
-    )
+    events.push(event('reopened', goalId, 0, { reason: drift!.reason }, stamp, cause))
 
   const changedMilestones = afterMilestones.filter((m) => {
     const was = goalMilestones.find((x) => x.id === m.id)
@@ -691,7 +683,13 @@ export async function patchGoal(id: string, patch: Partial<Goal>): Promise<Goal 
 export async function completeGoal(id: string): Promise<{ goal: Goal; xp: number } | null> {
   const goal = await db.goals.get(id)
   if (!goal || goal.completedAt) return null
-  const next: Goal = { ...goal, done: true, completedAt: now(), completedBy: null, updatedAt: now() }
+  const next: Goal = {
+    ...goal,
+    done: true,
+    completedAt: now(),
+    completedBy: null,
+    updatedAt: now(),
+  }
 
   // Closing a goal that has been closed before pays nothing. Reopen-and-retake
   // is a legitimate thing to do; it is not a way to earn the largest award in
@@ -791,9 +789,7 @@ export async function restoreTrash(trash: Trash): Promise<void> {
     if (trash.children.length) await db.goals.bulkPut(trash.children)
     // Both ends of every tie go back, or the graph comes back half-made.
     if (trash.allies.length) await db.goals.bulkPut(trash.allies)
-    await db.events.put(
-      event('unstruck', trash.goal.id, 0, { title: trash.goal.title }),
-    )
+    await db.events.put(event('unstruck', trash.goal.id, 0, { title: trash.goal.title }))
   })
 }
 
@@ -843,9 +839,7 @@ export async function reconcileAchievements(
   cause: string | null = null,
 ): Promise<{ unlocked: UnlockedAchievement[]; revoked: string[] }> {
   const state = await readAll()
-  const earned = new Map(
-    evaluate({ ...state, at: today() }).map((a) => [a.id, a.value] as const),
-  )
+  const earned = new Map(evaluate({ ...state, at: today() }).map((a) => [a.id, a.value] as const))
   const held = new Map(state.achievements.map((a) => [a.id, a]))
 
   const fresh = [...earned].filter(([id]) => !held.has(id))
@@ -855,7 +849,14 @@ export async function reconcileAchievements(
   const stamp = now()
   const rows: UnlockedAchievement[] = fresh.map(([id, value]) => ({ id, at: stamp, value, cause }))
   const events = rows.map((r) =>
-    event('achievement', null, xpFor('achievement'), { achievement: r.id, value: r.value }, stamp, cause),
+    event(
+      'achievement',
+      null,
+      xpFor('achievement'),
+      { achievement: r.id, value: r.value },
+      stamp,
+      cause,
+    ),
   )
   const orphaned = state.events
     .filter((e) => e.type === 'achievement' && stale.includes(String(e.data.achievement)))

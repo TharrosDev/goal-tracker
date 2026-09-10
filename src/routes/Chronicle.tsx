@@ -7,6 +7,7 @@ import { EVENT_COPY } from '@/domain/copy'
 import { dayOf, fmtDate, fmtDateShort, today } from '@/domain/date'
 import { SURFACE } from '@/design/marks'
 import './surface.css'
+import { TimeStrata } from '@/cinema/TimeStrata'
 
 /**
  * THE CHRONICLE (記) — travelling through what actually happened.
@@ -83,28 +84,34 @@ export function Chronicle() {
       {/* The scrubber. Height is merit, and the axis is stated — this is a chart
           and it says so, rather than being a bar chart with its scale removed. */}
       <section className="chron">
+        {current && (
+          <div className="chron__travel">
+            <p className="chron__date" aria-live="polite">
+              {fmtDate(current.from)}
+            </p>
+            <label className="label" htmlFor="time-travel">
+              TRAVEL THROUGH THE RECORD
+            </label>
+            <input
+              id="time-travel"
+              type="range"
+              min={0}
+              max={periods.length - 1}
+              value={periods.indexOf(current)}
+              onChange={(e) => setSelected(periods[Number(e.target.value)]!.key)}
+              aria-valuetext={`${fmtDate(current.from)}, ${current.dispatches} dispatches, ${current.merit} merit`}
+            />
+            <p className="lede">
+              {current.dispatches === 0 && current.merit === 0
+                ? 'No dispatches. No merit. This stretch is quiet.'
+                : `${current.dispatches} dispatches. ${current.gates} gates. ${current.taken} standards taken.`}
+            </p>
+          </div>
+        )}
         <p className="label">
           MERIT BY {grain === 'week' ? 'WEEK' : 'MONTH'} · PEAK {peak.toLocaleString('en-CA')}
         </p>
-        <ol className="chron__bars">
-          {periods.map((p) => (
-            <li key={p.key}>
-              <button
-                type="button"
-                className={`chron__bar${p.key === current?.key ? ' is-current' : ''}${p.key === best?.key ? ' is-best' : ''}`}
-                style={{ '--h': `${(p.merit / peak) * 100}%` } as React.CSSProperties}
-                onClick={() => setSelected(p.key)}
-                aria-pressed={p.key === current?.key}
-              >
-                <span className="sr-only">
-                  {fmtDate(p.from)}: {p.dispatches} dispatches, {p.gates} gates, {p.taken} taken,{' '}
-                  {p.merit} merit
-                  {p.key === best?.key ? '. The strongest on record.' : ''}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ol>
+        <TimeStrata periods={periods} selected={current?.key} peak={peak} onSelect={setSelected} />
         <p className="chron__axis label">
           <span>{fmtDateShort(periods[0]?.from ?? at)}</span>
           <span>NOW</span>

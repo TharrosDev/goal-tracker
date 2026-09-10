@@ -6,9 +6,9 @@ import { Mon } from '@/viz/Mon'
 import { SURFACE } from '@/design/marks'
 import { GOAL_KINDS, type GoalKind, type Rating } from '@/domain/types'
 import { KIND_LABEL } from '@/domain/format'
-import { makeGoal, TARGETLESS, type NewGoal } from '@/domain/schema'
+import { makeGoal, uid, TARGETLESS, type NewGoal } from '@/domain/schema'
 import { addDays, today } from '@/domain/date'
-import { sigilOf } from '@/domain/identity'
+import { dyeOf, sigilOf } from '@/domain/identity'
 import './plant.css'
 
 /**
@@ -43,6 +43,7 @@ export function Plant() {
   const createGoal = useWorld((s) => s.createGoal)
   const world = useWorldView()
   const [ritual, setRitual] = useState(false)
+  const [reservedId] = useState(() => uid())
   const [stage, setStage] = useState(0)
   const [busy, setBusy] = useState(false)
 
@@ -71,9 +72,9 @@ export function Plant() {
   // The crest exists before the goal does, so the last stage can show what is
   // about to be planted rather than describing it.
   const preview = useMemo(() => {
-    const provisional = makeGoal({ ...draft, title: draft.title || 'UNNAMED' })
+    const provisional = makeGoal({ ...draft, id: reservedId, title: draft.title || 'UNNAMED' })
     return { goal: provisional, sigil: sigilOf(provisional) }
-  }, [draft])
+  }, [draft, reservedId])
 
   const plant = async () => {
     if (!canPlant || busy) return
@@ -83,7 +84,7 @@ export function Plant() {
         .split('\n')
         .map((g) => g.trim())
         .filter(Boolean)
-      const goal = await createGoal(draft, gates)
+      const goal = await createGoal({ ...draft, id: reservedId }, gates)
       navigate(`/standard/${goal.id}`)
     } finally {
       setBusy(false)
@@ -197,7 +198,29 @@ export function Plant() {
         ))}
       </ol>
 
-      <div className="oath">
+      <aside
+        className="oath__presence"
+        data-boss={draft.boss}
+        aria-label="Your standard taking form"
+      >
+        <Mon
+          sigil={preview.sigil}
+          kind={draft.kind}
+          state="new"
+          dye={dyeOf(preview.goal)}
+          fraction={0}
+          size={160}
+        />
+        <p>
+          {preview.sigil.callsign}
+          <br />
+          {draft.category || 'NO HOUSE'}
+          <br />
+          {draft.deadline || 'NO HOUR'}
+          {draft.boss ? ' · SIEGE' : ''}
+        </p>
+      </aside>
+      <div className="oath oath__body" key={current.key}>
         <span className="oath__mark" aria-hidden="true">
           {current.mark}
         </span>
@@ -360,7 +383,7 @@ export function Plant() {
               sigil={preview.sigil}
               kind={draft.kind}
               state="new"
-              dye={0}
+              dye={dyeOf(preview.goal)}
               fraction={0}
               size={120}
               title={`The crest for ${draft.title || 'this standard'}`}

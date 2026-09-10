@@ -1,0 +1,1014 @@
+/* The cinematic layer: background, atmosphere, foreground. Never a Canvas ancestor. */
+.scene-world {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  --air: 0;
+}
+.scene-world__plate {
+  position: absolute;
+  inset: 0;
+}
+.scene-world__plate img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 65% 58%;
+}
+.scene-world__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, var(--ground) 0%, transparent 64%),
+    linear-gradient(
+      0deg,
+      var(--ground) 0%,
+      transparent 42%,
+      color-mix(in srgb, var(--ground) 35%, transparent)
+    );
+}
+.scene-world__front {
+  position: absolute;
+  inset: 35% -10% -5%;
+  background: linear-gradient(
+    165deg,
+    transparent 35%,
+    color-mix(in srgb, var(--ink) 7%, transparent) 49%,
+    transparent 59%
+  );
+  transform: translate3d(calc(var(--air) * 30px), calc(var(--air) * -8px), 0);
+}
+.scene-world[data-intensity='quiet'] .scene-world__front {
+  opacity: 0.2;
+}
+.scene-world[data-intensity='high'] .scene-world__front {
+  opacity: 1;
+}
+.scene-world[data-space='quartermaster'] {
+  background: var(--ground);
+}
+.scene-world[data-space='dojo'] .scene-world__plate img {
+  object-position: center;
+}
+.scene-world[data-space='dojo'] .scene-world__veil {
+  background: color-mix(in srgb, var(--ground-inset) 48%, transparent);
+}
+.scene-world[data-space='shrine'] .scene-world__veil {
+  background: linear-gradient(0deg, var(--ground) 3%, transparent 85%);
+}
+[data-world='washi'] .scene-world__plate {
+  filter: grayscale(1) invert(1);
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+}
+[data-world='washi'] .scene-world {
+  background: var(--ground);
+}
+[data-world='sumi'] .scene-world__plate {
+  filter: grayscale(1) contrast(1.45);
+  opacity: 0.5;
+}
+[data-world='kuro'] .scene-world__plate {
+  filter: grayscale(1) contrast(1.2);
+}
+[data-world='jigoku'] .scene-world__plate {
+  filter: sepia(0.8);
+}
+[data-world='jigoku'] .scene-world__veil {
+  background:
+    linear-gradient(100deg, var(--ground) 6%, transparent),
+    linear-gradient(0deg, var(--ground), transparent 70%);
+}
+.scene-cut {
+  position: absolute;
+  inset: 0;
+  background: var(--ground-inset);
+  animation: scene-open 440ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.scene-cut--dojo {
+  animation-name: chamber-close;
+}
+.scene-cut--chronicle {
+  animation-name: record-open;
+}
+@keyframes scene-open {
+  from {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+  }
+}
+@keyframes chamber-close {
+  from {
+    clip-path: inset(0 0);
+  }
+  to {
+    clip-path: inset(0 50%);
+  }
+}
+@keyframes record-open {
+  from {
+    clip-path: inset(0);
+  }
+  to {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+.scene-impact {
+  position: absolute;
+  inset: 35% 0 0;
+  border-top: 1px solid var(--accent);
+  animation: ground-impact 620ms var(--ease-out) both;
+}
+@keyframes ground-impact {
+  from {
+    transform: translateY(30%);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateY(-60%);
+    opacity: 0;
+  }
+}
+.camp .ambient {
+  display: none;
+}
+.rail {
+  background: color-mix(in srgb, var(--ground) 92%, transparent);
+}
+.rail__name {
+  writing-mode: horizontal-tb;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+}
+.rail__link {
+  padding-block: 20px;
+}
+.camp__main:focus {
+  outline: none;
+}
+.camp[data-space='dojo'] .rail,
+.camp[data-space='dojo'] .tabs {
+  display: none;
+}
+.camp[data-space='dojo'] .camp__main {
+  padding-bottom: 0;
+}
+.camp[data-space='dojo'] .dojo.dojo {
+  background: transparent;
+}
+.camp[data-space='dojo'] .dojo__centre.dojo__centre {
+  max-width: 64ch;
+  overflow: visible;
+}
+.camp[data-space='dojo'] .dojo.dojo {
+  overflow-y: auto;
+}
+.camp[data-space='dojo'] .dojo__title.dojo__title {
+  font-size: clamp(36px, 5vw, 76px);
+}
+.dojo__incense.dojo__incense {
+  width: min(460px, 80vw);
+  height: 22px;
+  display: flex;
+  align-items: end;
+  gap: 5px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+.dojo__incense.dojo__incense i {
+  flex: 1;
+  height: 8px;
+  border-left: 1px solid var(--rule-strong);
+}
+.dojo__incense.dojo__incense i.is-held {
+  height: 20px;
+  background: var(--accent);
+}
+.war.war {
+  padding: 28px 40px 20px;
+}
+.war__scene-title.war__scene-title {
+  position: absolute;
+  right: 40px;
+  top: 23%;
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-stretch: condensed;
+  font-size: clamp(38px, 7.5vw, 116px);
+  line-height: 0.82;
+  letter-spacing: -0.035em;
+  text-align: right;
+  color: var(--ink);
+  max-width: 7ch;
+  opacity: 0.92;
+  pointer-events: none;
+}
+.war__return.war__return {
+  max-width: 65%;
+  font-size: var(--t-body);
+}
+.war__wind.war__wind {
+  margin-bottom: 0;
+}
+.war__wind.war__wind .numeral {
+  text-shadow: 0 8px 30px var(--ground-inset);
+}
+.war__order.war__order {
+  background: var(--ground);
+  padding: 16px 0 0;
+  gap: 28px;
+}
+.war__command.war__command {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  min-height: 48px;
+}
+.war__command.war__command button {
+  min-height: 44px;
+  color: var(--accent);
+  font: 600 var(--t-label-lg) var(--font-mono);
+}
+.war__command.war__command span {
+  font-size: var(--t-label-lg);
+  color: var(--ink-dim);
+}
+.field__rules {
+  background: linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--ground) 85%, transparent),
+    transparent 55%
+  );
+}
+.standard__cloth {
+  transform: skewX(calc(var(--camp-wind, 0) * -2deg));
+  transform-origin: left bottom;
+  box-shadow: 8px 12px 24px color-mix(in srgb, var(--ground-inset) 45%, transparent);
+}
+.standard__figure,
+.standard__foot {
+  background: var(--ground);
+}
+.standard__foot {
+  padding-top: 4px;
+}
+.field:has(.is-selected) .standard:not(.is-selected) .standard__cloth {
+  opacity: 0.4;
+}
+.standard.is-selected .standard__pole {
+  background: var(--accent);
+}
+.war--empty.war--empty {
+  max-width: none;
+  padding-inline: 8vw;
+}
+.war--empty.war--empty .lede {
+  max-width: 42ch;
+}
+.war--empty.war--empty .war__empty-title.war__empty-title {
+  font-size: clamp(62px, 11vw, 166px);
+}
+.goal-presence {
+  position: absolute;
+  right: 3%;
+  top: 90px;
+  width: 34%;
+  height: 510px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.goal-presence__cloth {
+  position: absolute;
+  left: 25%;
+  top: 0;
+  height: 74%;
+  width: 64%;
+  padding: 24px 10px;
+  border-top: 3px solid var(--accent);
+  background: linear-gradient(90deg, var(--ground-raised), var(--ground-inset));
+  border-left: 2px solid var(--dye);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 91%, 0 100%);
+}
+.goal-presence__cloth svg {
+  width: 100%;
+  height: auto;
+}
+.goal-presence__socket {
+  position: absolute;
+  left: 12%;
+  right: 0;
+  bottom: 10%;
+  height: 16%;
+  border: 1px solid var(--rule);
+  transform: skewY(-8deg);
+  background: var(--ground-inset);
+}
+.goal-presence__steps i {
+  position: absolute;
+  bottom: calc(10% + var(--step) * 5%);
+  left: calc(12% + var(--step) * 3%);
+  right: calc(var(--step) * 3%);
+  height: 25px;
+  background: var(--ground-raised);
+  border-top: 1px solid var(--rule-strong);
+}
+.goal-presence[data-form='rhythm'] .goal-presence__cloth {
+  border-radius: 50%;
+  clip-path: none;
+  height: 60%;
+  background: transparent;
+  border: 2px dashed var(--dye);
+}
+.goal-presence[data-form='horizon'] .goal-presence__cloth {
+  width: 20%;
+  left: 50%;
+  clip-path: none;
+}
+.goal-presence[data-form='fortress'] {
+  width: 42%;
+}
+.goal-presence[data-state='completed'] .goal-presence__cloth {
+  border-color: var(--accent);
+}
+.detail.detail {
+  position: relative;
+  isolation: isolate;
+}
+.detail__head.detail__head,
+.detail__standing.detail__standing {
+  position: relative;
+  z-index: 1;
+}
+.detail__head.detail__head {
+  max-width: 75%;
+}
+.detail__standing.detail__standing {
+  max-width: 76%;
+}
+.detail__facts.detail__facts {
+  background: color-mix(in srgb, var(--ground) 94%, transparent);
+  padding: 16px;
+}
+.detail.detail .trajectory,
+.detail__story.detail__story,
+.detail__gates.detail__gates,
+.detail__why.detail__why {
+  position: relative;
+  background: var(--ground);
+}
+.camp[data-space='shrine'] .surface__head {
+  min-height: 150px;
+  align-items: end;
+}
+.camp[data-space='shrine'] .h1 {
+  font-size: clamp(64px, 9vw, 132px);
+}
+.shrine.shrine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 48px;
+  padding: 40px 0 80px;
+}
+.shrine.shrine .monument {
+  width: min(260px, 100%);
+  position: relative;
+}
+.shrine.shrine .monument button {
+  min-height: 360px;
+  padding: 35px 24px;
+  justify-items: center;
+  text-align: center;
+  align-content: start;
+  gap: 20px;
+  background: linear-gradient(100deg, var(--ground-raised), var(--ground-inset));
+  border-top: 3px solid var(--accent);
+  box-shadow: 20px 30px 35px color-mix(in srgb, var(--ground-inset) 60%, transparent);
+}
+.shrine.shrine .monument::after {
+  content: '';
+  display: block;
+  height: 20px;
+  margin-inline: -12px;
+  background: var(--ground-raised);
+  border-top: 1px solid var(--rule-strong);
+}
+.shrine.shrine .monument--major button {
+  min-height: 460px;
+}
+.shrine.shrine .monument--boss {
+  width: min(390px, 100%);
+}
+.shrine.shrine .monument--boss button {
+  min-height: 570px;
+  border-top: 10px double var(--accent);
+  padding-top: 58px;
+}
+.shrine.shrine .monument--boss svg {
+  width: 150px;
+  height: 150px;
+}
+.shrine.shrine .monument__facts,
+.shrine.shrine .monument__why {
+  display: none;
+}
+.shrine.shrine .monument__inspect {
+  color: var(--ink-dim);
+  font: var(--t-label) var(--font-mono);
+  margin-top: auto;
+}
+.chron__travel.chron__travel {
+  display: grid;
+  gap: 18px;
+  margin-block: 24px 36px;
+}
+.chron__date.chron__date {
+  font: 800 clamp(38px, 6vw, 92px)/1 var(--font-display);
+  letter-spacing: -0.035em;
+}
+.chron__travel.chron__travel input {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--accent);
+}
+.chron__bars.chron__bars {
+  height: 210px;
+}
+.chron__bars.chron__bars li {
+  min-width: 44px;
+}
+.chron__bars.chron__bars {
+  overflow-x: auto;
+}
+.chron__bar.chron__bar {
+  min-height: 44px;
+  background: transparent;
+  position: relative;
+  height: 100%;
+}
+.chron__bar.chron__bar::before {
+  content: '';
+  position: absolute;
+  inset: auto 4px 0;
+  height: max(var(--h), 2px);
+  background: var(--rule-strong);
+}
+.chron__bar.chron__bar.is-current,
+.chron__bar.chron__bar.is-best,
+.chron__bar.chron__bar:hover {
+  background: transparent;
+}
+.chron__bar.chron__bar.is-current::before {
+  background: var(--accent);
+}
+.chron__bar.chron__bar.is-best::before {
+  border-top: 3px solid var(--ok);
+}
+.chron__bar.chron__bar.is-current {
+  border-bottom: 3px solid var(--accent);
+}
+.camp[data-space='chronicle'] .surface__block,
+.camp[data-space='survey'] .surface__block,
+.surface__answers {
+  background: var(--ground);
+  padding: 24px;
+}
+.oath.oath {
+  position: relative;
+}
+.oath__presence.oath__presence {
+  position: absolute;
+  right: 4%;
+  top: 16%;
+  width: 24%;
+  height: 55%;
+  display: grid;
+  place-content: center;
+  gap: 20px;
+  justify-items: center;
+  border-top: 3px solid var(--accent);
+  background: var(--ground-inset);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 93%, 0 100%);
+}
+.oath__presence.oath__presence[data-boss='true'] {
+  border-top: 12px double var(--accent);
+}
+.oath__presence.oath__presence svg {
+  width: 100%;
+  height: auto;
+}
+.oath__body.oath__body {
+  max-width: 68%;
+}
+.oath__presence.oath__presence p {
+  font: var(--t-label) var(--font-mono);
+  color: var(--ink-dim);
+  text-align: center;
+}
+.fall.fall::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, var(--ground-inset), transparent),
+    url('/assets/environments/chamber-v1-1536.webp') center/cover;
+  opacity: 0.75;
+}
+.fall__inner.fall__inner {
+  position: relative;
+}
+.fall__chapter.fall__chapter {
+  position: absolute;
+  top: 24px;
+  left: 28px;
+  color: var(--accent);
+  font: var(--t-label-lg) var(--font-mono);
+}
+.fall--siege.fall--siege .fall__crest.fall__crest {
+  transition: transform 700ms var(--ease-out);
+}
+.fall--siege.fall--siege.fall--beat-0.fall--beat-0 .fall__crest.fall__crest {
+  transform: scale(0.3);
+}
+.fall--siege.fall--siege.fall--beat-3.fall--beat-3 .fall__crest.fall__crest {
+  transform: scale(1.8);
+}
+.fall--siege.fall--siege.fall--beat-6.fall--beat-6 .fall__crest.fall__crest {
+  transform: translateY(-20px);
+}
+.fall--siege.fall--siege .fall__castle.fall__castle {
+  width: min(76vw, 1000px);
+  opacity: 0.5;
+}
+.fall--siege.fall--siege .fall__title.fall__title {
+  text-shadow: 0 12px 32px var(--ground-inset);
+}
+.fall--still.fall--still .fall__crest.fall__crest {
+  transform: none !important;
+  transition: none;
+}
+.honours.honours {
+  gap: 36px;
+}
+.honour.honour {
+  padding: 30px 20px;
+  background: linear-gradient(0deg, var(--ground-inset), transparent);
+  border-bottom: 1px solid var(--rule-strong);
+}
+.honour__badge.honour__badge {
+  width: 88px;
+  height: 88px;
+}
+[data-motion='reduced'] .scene-cut,
+[data-motion='reduced'] .scene-impact {
+  animation: none;
+  display: none;
+}
+[data-motion='reduced'] .standard__cloth {
+  transform: none;
+}
+@media (max-width: 900px) {
+  .war.war {
+    padding: 16px;
+  }
+  .war__rank.war__rank {
+    position: absolute;
+    right: 16px;
+    top: 18px;
+    display: grid;
+    gap: 6px;
+    justify-items: end;
+  }
+  .war__rank.war__rank .war__merit.war__merit {
+    width: 60px;
+  }
+  .war__return.war__return {
+    max-width: 65%;
+  }
+  .war__scene-title.war__scene-title {
+    font-size: 58px;
+    top: 22%;
+    right: 16px;
+  }
+  .goal-presence {
+    width: 45%;
+    opacity: 0.3;
+  }
+  .detail__head.detail__head,
+  .detail__standing.detail__standing {
+    max-width: 100%;
+  }
+  .oath__presence.oath__presence {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    height: 130px;
+    clip-path: none;
+    grid-auto-flow: column;
+    justify-content: space-between;
+    padding: 16px;
+  }
+  .oath__presence.oath__presence svg {
+    width: 84px;
+    height: 84px;
+  }
+  .oath__body.oath__body {
+    max-width: 100%;
+  }
+}
+@media (max-width: 640px) {
+  .scene-world__plate img {
+    object-position: 70% center;
+  }
+  .scene-world__veil {
+    background:
+      linear-gradient(0deg, var(--ground) 4%, transparent 65%),
+      linear-gradient(90deg, color-mix(in srgb, var(--ground) 78%, transparent), transparent);
+  }
+  .war__scene-title.war__scene-title {
+    font-size: 34px;
+    top: 155px;
+    max-width: 7ch;
+  }
+  .war__wind.war__wind {
+    margin-top: 10px;
+  }
+  .war__wind-read.war__wind-read {
+    max-width: 210px;
+    flex-wrap: wrap;
+  }
+  .war__rank-title.war__rank-title {
+    font-size: 19px;
+  }
+  .war__return.war__return {
+    font-size: 15px;
+  }
+  .war__order.war__order {
+    gap: 8px 20px;
+    font-size: 16px;
+    padding-top: 10px;
+  }
+  .war__command.war__command {
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+  }
+  .war__command.war__command span {
+    display: none;
+  }
+  .tabs__name {
+    font-size: 11.5px;
+    letter-spacing: 0;
+    text-align: center;
+  }
+  .dojo.dojo {
+    padding: 14px 18px 40px;
+  }
+  .dojo__head.dojo__head {
+    gap: 10px;
+  }
+  .dojo__pick.dojo__pick {
+    min-width: 0;
+  }
+  .dojo__pick.dojo__pick select {
+    width: 100%;
+  }
+  .dojo__leave.dojo__leave {
+    padding-inline: 8px;
+    flex-shrink: 0;
+  }
+  .dojo__time.dojo__time {
+    font-size: 74px;
+  }
+  .dojo__centre.dojo__centre {
+    gap: 20px;
+  }
+  .goal-presence {
+    right: 0;
+    top: 140px;
+    width: 58%;
+  }
+  .shrine.shrine {
+    justify-content: center;
+  }
+  .shrine.shrine .monument--boss {
+    width: 100%;
+  }
+  .shrine.shrine .monument--boss button {
+    min-height: 470px;
+  }
+  .chron__bars.chron__bars {
+    height: 150px;
+  }
+  .camp[data-space='chronicle'] .surface__block,
+  .surface__answers {
+    padding: 16px 0;
+  }
+}
+
+.camp .plant--ritual {
+  max-width: none;
+  position: relative;
+  padding-right: 34%;
+}
+.camp .plant--ritual .oath__body.oath__body {
+  max-width: 100%;
+}
+.camp .detail.detail {
+  max-width: none;
+}
+@media (max-width: 900px) {
+  .camp .plant--ritual {
+    padding-right: var(--s4);
+  }
+}
+
+.camp .war__scene-title {
+  top: 100px;
+  font-size: clamp(48px, 6.8vw, 100px);
+}
+.camp .war__rank {
+  grid-auto-flow: row;
+}
+@media (max-width: 640px) {
+  .camp .war__rank {
+    top: 82px;
+  }
+  .camp .war__scene-title {
+    top: 160px;
+    font-size: 32px;
+  }
+  .camp .war__return {
+    max-width: 100%;
+    padding-right: 0;
+  }
+}
+
+.scene-world[data-space='dojo'] .scene-world__veil {
+  background: color-mix(in srgb, var(--ground-inset) 76%, transparent);
+}
+.camp .dojo__centre {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+.camp .dojo .label,
+.camp .dojo__leave,
+.camp .dojo__pick select {
+  color: var(--ink);
+}
+.camp .dojo__amount {
+  background: var(--ground);
+}
+.camp .detail__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  background: var(--ground);
+  padding: 16px;
+}
+.memorial-record {
+  background: var(--ground);
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+.camp .goal-presence {
+  opacity: 0.85;
+}
+.camp .goal-presence__cloth {
+  background: var(--ground-inset);
+}
+.camp .honour:not(.is-won) .honour__badge {
+  opacity: 0.6;
+}
+.camp .honour.is-won {
+  border-bottom: 3px double var(--accent);
+}
+.camp .honour--mythic.is-won {
+  grid-column: span 2;
+}
+.camp .fall {
+  overflow-y: auto;
+}
+.camp .fall__skip {
+  background: var(--ground);
+  padding: 14px 24px;
+}
+.camp .fall__tally,
+.camp .fall__honours {
+  background: var(--ground-inset);
+  padding: 16px;
+}
+@media (max-width: 640px) {
+  .camp .dojo__centre {
+    padding-top: 28px;
+  }
+  .camp .honour--mythic.is-won {
+    grid-column: auto;
+  }
+  .camp .fall__title {
+    font-size: clamp(48px, 14vw, 74px);
+  }
+  .camp .fall__chapter {
+    font-size: 11.5px;
+  }
+}
+
+.camp .detail__actions {
+  position: relative;
+  bottom: auto;
+  padding: 0 0 12px;
+}
+.scene-world[data-space='plant'] .scene-world__veil,
+.scene-world[data-space='chronicle'] .scene-world__veil,
+.scene-world[data-space='survey'] .scene-world__veil {
+  background: color-mix(in srgb, var(--ground) 90%, transparent);
+}
+.scene-world[data-space='shrine'] .scene-world__veil {
+  background: linear-gradient(
+    0deg,
+    var(--ground) 0%,
+    color-mix(in srgb, var(--ground) 60%, transparent) 90%
+  );
+}
+.camp .shrine .label {
+  color: var(--ink-dim);
+}
+.camp .fall__story {
+  background: var(--ground-inset);
+  padding: 10px;
+}
+@media (max-width: 640px) {
+  .camp .war__scene-title {
+    top: 24px;
+  }
+  .camp .war__rank {
+    top: 110px;
+  }
+  .camp .war__wind {
+    margin-top: 60px;
+  }
+  .camp .war:has(.war__return) .war__wind {
+    margin-top: 10px;
+  }
+  .camp .war__return {
+    max-width: calc(100% - 145px);
+  }
+}
+
+.scene-threshold {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--ground-inset);
+  pointer-events: none;
+  animation: scene-open 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.scene-threshold[data-space='dojo'] {
+  animation-name: chamber-close;
+}
+.scene-threshold[data-space='chronicle'] {
+  animation-name: record-open;
+}
+[data-motion='reduced'] .scene-threshold {
+  display: none;
+  animation: none;
+}
+.camp .goal-presence__cloth {
+  height: calc(45% + var(--presence) * 30%);
+}
+.camp .fall--siege .fall__castle {
+  position: absolute;
+  inset: 3% 0 auto;
+  width: 100%;
+  pointer-events: none;
+}
+.camp .fall--siege .fall__inner {
+  width: min(1100px, 100%);
+  padding-block: 50px 70px;
+}
+.camp .fall--siege .fall__crest {
+  position: relative;
+  z-index: 1;
+}
+.camp .fall--siege .fall__title {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(60px, 10vw, 156px);
+}
+.camp .fall--siege:is(.fall--beat-0, .fall--beat-1, .fall--beat-2) .fall__title {
+  opacity: 0.15;
+}
+.camp .fall--siege:is(.fall--beat-0, .fall--beat-1, .fall--beat-2, .fall--beat-3) .fall__tally {
+  visibility: hidden;
+}
+.camp .fall--siege:is(.fall--beat-0, .fall--beat-1, .fall--beat-2, .fall--beat-3) .fall__honours {
+  visibility: hidden;
+}
+.camp .fall__skip {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 2;
+  border: 1px solid var(--rule-strong);
+}
+.camp .fall__enshrine {
+  padding: 16px 28px;
+  min-height: 48px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 600 var(--t-label-lg) var(--font-mono);
+}
+.camp .fall--still .fall__title {
+  opacity: 1 !important;
+}
+@media (max-width: 640px) {
+  .camp .fall--siege .fall__title {
+    font-size: 48px;
+  }
+  .camp .fall__skip {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+.time-strata {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-color: var(--accent) var(--ground-inset);
+}
+.time-strata__land {
+  position: relative;
+  min-width: 100%;
+}
+.time-strata svg {
+  max-width: none;
+  width: 100%;
+}
+.time-strata__periods {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 76px;
+}
+.time-strata__periods button {
+  display: grid;
+  gap: 8px;
+  min-height: 72px;
+  width: 100%;
+  padding: 10px 4px;
+  color: var(--ink-dim);
+  font: 11.5px var(--font-mono);
+  border-top: 1px solid var(--rule);
+}
+.time-strata__periods button[aria-pressed='true'] {
+  color: var(--accent);
+  border-top: 3px solid var(--accent);
+}
+.intelligence {
+  display: grid;
+  gap: 20px;
+  padding-block: 36px;
+}
+.intelligence svg {
+  width: 100%;
+  background: var(--ground);
+}
+.intelligence__roll button {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  text-align: left;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.intelligence__roll .num {
+  font-size: var(--t-label-lg);
+}
+@media (max-width: 640px) {
+  .intelligence__roll button {
+    display: grid;
+    gap: 8px;
+  }
+}
+
+/* Keep the final destination in reach while a long honour record scrolls. */
+@media (max-width: 640px) {
+  .camp .fall__enshrine {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    right: 122px;
+    z-index: 3;
+    padding: 12px;
+  }
+  .camp .fall--siege .fall__inner {
+    padding-bottom: 100px;
+  }
+}

@@ -36,7 +36,12 @@ export function WarTable() {
   const returning = welcomeBack(awayDays)
 
   return (
-    <div className="war enter">
+    <div className="war">
+      <h1 className="war__scene-title" aria-label="The War Table">
+        WAR
+        <br />
+        TABLE
+      </h1>
       {returning && (
         <p className="war__return" role="status">
           {returning}
@@ -75,6 +80,22 @@ export function WarTable() {
         onOpen={(id) => navigate(`/standard/${id}`)}
       />
 
+      <div className="war__command">
+        <button
+          type="button"
+          onClick={() => navigate(selected ? `/standard/${selected}` : '/campaign')}
+        >
+          {selected ? 'ENTER STANDARD' : 'ENTER CAMPAIGN'}
+        </button>
+        <button type="button" onClick={() => navigate('/plant')}>
+          PLANT A STANDARD
+        </button>
+        <span>
+          {selected
+            ? world.byId.get(selected)?.goal.title
+            : 'Choose a standard to enter its ground.'}
+        </span>
+      </div>
       <p className="war__order">
         <span>
           <b className="num">{streak}</b> day{streak === 1 ? '' : 's'} unbroken

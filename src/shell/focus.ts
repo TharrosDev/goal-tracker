@@ -62,7 +62,8 @@ export function useFocusTrap(root: RefObject<HTMLElement | null>, options: TrapO
     const element = root.current
     if (!element) return
 
-    restoreTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    restoreTo.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
 
     // Every overlay in this product has something to focus. If one ever does
     // not, leaving the keyboard where it was is better than silently moving it
@@ -114,7 +115,15 @@ export function useFocusTrap(root: RefObject<HTMLElement | null>, options: TrapO
       // Only if it is still in the document: restoring focus to a detached node
       // silently drops it on the body.
       const back = restoreTo.current
-      if (back && back.isConnected) back.focus()
+      // A new modal may already have acquired focus while this one unmounts.
+      // Restore only if focus still belongs to the outgoing modal or the body.
+      const active = document.activeElement
+      if (
+        back &&
+        back.isConnected &&
+        (active === document.body || !active || element.contains(active))
+      )
+        back.focus()
     }
   }, [root, onEscape, initial, enabled])
 }

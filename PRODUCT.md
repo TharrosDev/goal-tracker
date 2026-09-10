@@ -14,9 +14,7 @@ typed in by hand and lives in one browser on one device.
 One owner-user, tracking his own commitments. Primary situation is **desktop, seated, reviewing** —
 opened to see where things stand and to log what happened, not to process a queue.
 
-Mobile is explicitly **not** a target. The owner has said he will not use it on a phone. The
-responsive CSS that exists is a courtesy, not a supported environment, and no further mobile work
-should be done unless he asks.
+Mobile is supported by the September 2026 cinematic brief. Test 390×844, 430×932, tablet and desktop; preserve fast logging and an intentionally composed STILL AIR experience.
 
 A secondary, non-editing audience exists: the screen is occasionally shown to another person. That
 viewer has no context and five seconds, and must be able to read where things stand without
@@ -45,7 +43,7 @@ countdown, custom. Each carries an optional hour (deadline), house (category), g
 ties to other standards, difficulty, priority, notes, recurrence and a boss flag.
 
 **An append-only chronicle.** Every mutation writes a timeline event. Momentum, rank, merit,
-streaks, honours, the survey and the time machine are all *folds over that log* — nothing derived is
+streaks, honours, the survey and the time machine are all _folds over that log_ — nothing derived is
 stored twice, and the whole history is re-derivable after an import.
 
 **Nine surfaces** — the war table, the campaign, a standard's own ground, the dojo, the shrine, the
@@ -73,7 +71,7 @@ chronicle, honours, the survey, the quartermaster.
 - **Local-first.** IndexedDB is the only persistence. No backend, no auth, no analytics, no network
   request at runtime — fonts are self-hosted and the kanji face is subset into the bundle.
 - **Data belongs to the user.** Export is a first-class action, not a settings-page afterthought.
-- **The v1 almanac's data is sacred.** `goals.v1` is detected, migrated and *copied* — never moved,
+- **The v1 almanac's data is sacred.** `goals.v1` is detected, migrated and _copied_ — never moved,
   never cleared. See `DATA-MODEL.md`.
 - **Accessibility is not traded for effect.** Every value clears 3:1, every piece of text 4.5:1, in
   all five camps, enforced by a test that fails the build.

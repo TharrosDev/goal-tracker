@@ -177,6 +177,8 @@ export const TARGETLESS: ReadonlySet<GoalKind> = new Set([
 ])
 
 export interface NewGoal {
+  /** Reserved by the planting ritual; collisions are refused by repository add. */
+  id?: string
   kind: GoalKind
   title: string
   target?: number | null
@@ -206,7 +208,7 @@ export function makeGoal(input: NewGoal): Goal {
       ? (input.target ?? 100)
       : (input.target ?? null)
   return {
-    id: uid(),
+    id: input.id ?? uid(),
     kind: input.kind,
     title: input.title.trim(),
     why: input.why?.trim() ?? '',

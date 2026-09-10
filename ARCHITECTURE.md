@@ -14,6 +14,7 @@ src/
   viz/        reusable primitives: Mon, Numeral, Trajectory, Mark.
   field/      the war table's coordinate system and its objects.
   campaign/   the spatial camp (lazy WebGL) and the roll (its accessible peer).
+  cinema/     decorative environments and factual presentation primitives; no persistence.
   shell/      chrome: rail, hotkeys, palette, dispatch, ceremony, undo, sound, prefs.
   routes/     the nine surfaces.
 ```
@@ -26,8 +27,8 @@ why it can be exhaustively tested without a browser, and why the same numbers ap
 surface.
 
 **2. Every mutation writes an event, and every event knows what caused it.** `src/data/repo.ts` is
-the only place anything is written, and it writes the record and the timeline event describing it *in
-the same transaction*. Momentum, rank, merit, streaks, honours, the survey and the chronicle are all
+the only place anything is written, and it writes the record and the timeline event describing it _in
+the same transaction_. Momentum, rank, merit, streaks, honours, the survey and the chronicle are all
 folds over that log. Nothing derived is stored, so nothing derived can drift.
 
 This was a claim before it was a fact. Adding a gate, cutting a tie, reparenting, moving a target,
@@ -83,26 +84,26 @@ memoised selectors, **not** a second source of truth.
 
 ## Key modules
 
-| File | What it owns |
-|---|---|
-| `domain/pace.ts` | `perWeek`, `paceGap`, `BEHIND`, `arrival`, `pressure`, `projectedFinish`. Ported verbatim from v1. |
-| `domain/progress.ts` | `fraction` across all ten kinds, `isDone`, `stateOf`, streaks, money rounding. |
-| `domain/momentum.ts` | The wind. A recency-weighted, per-day-saturated fold with no negative term. |
-| `domain/xp.ts` | Merit and the rank ladder. XP is stamped on the event at write time. |
-| `domain/achievements.ts` | 23 honours as pure predicates over a snapshot. |
-| `domain/identity.ts` | Deterministic per-goal crest, dye and orbit from the goal's id. |
-| `domain/history.ts` | Folds for the chronicle and the survey: periods, runs, comebacks, records, houses. |
-| `domain/copy.ts` | The chronicle's voice, and the rule that behind is never failure. |
-| `domain/invariants.ts` | The shapes that cannot exist, and the one place they are prevented. |
-| `data/repo.ts` | Every mutation. The only writer. |
-| `data/migrations.ts` | `goals.v1` → v2. Copies, never moves. |
-| `data/backup.ts` | Export, and an import that salvages, quarantines and repairs. |
-| `state/selectors.ts` | `GoalView` and `WorldView` — everything the interface knows. |
-| `field/layout.ts` | The war table's coordinate system. Pure and tested. |
-| `campaign/layout.ts` | The camp's ground plan. Pure. |
-| `design/contrast.test.ts` | Parses `tokens.css` and fails the build on any contrast violation. |
-| `design/motion.css` | Every keyframe and the `--dur-*`/`--ease-*` tokens. The six motion words. |
-| `design/motion.ts` | The same numbers for the two places that need them in JS. |
+| File                      | What it owns                                                                                       |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `domain/pace.ts`          | `perWeek`, `paceGap`, `BEHIND`, `arrival`, `pressure`, `projectedFinish`. Ported verbatim from v1. |
+| `domain/progress.ts`      | `fraction` across all ten kinds, `isDone`, `stateOf`, streaks, money rounding.                     |
+| `domain/momentum.ts`      | The wind. A recency-weighted, per-day-saturated fold with no negative term.                        |
+| `domain/xp.ts`            | Merit and the rank ladder. XP is stamped on the event at write time.                               |
+| `domain/achievements.ts`  | 23 honours as pure predicates over a snapshot.                                                     |
+| `domain/identity.ts`      | Deterministic per-goal crest, dye and orbit from the goal's id.                                    |
+| `domain/history.ts`       | Folds for the chronicle and the survey: periods, runs, comebacks, records, houses.                 |
+| `domain/copy.ts`          | The chronicle's voice, and the rule that behind is never failure.                                  |
+| `domain/invariants.ts`    | The shapes that cannot exist, and the one place they are prevented.                                |
+| `data/repo.ts`            | Every mutation. The only writer.                                                                   |
+| `data/migrations.ts`      | `goals.v1` → v2. Copies, never moves.                                                              |
+| `data/backup.ts`          | Export, and an import that salvages, quarantines and repairs.                                      |
+| `state/selectors.ts`      | `GoalView` and `WorldView` — everything the interface knows.                                       |
+| `field/layout.ts`         | The war table's coordinate system. Pure and tested.                                                |
+| `campaign/layout.ts`      | The camp's ground plan. Pure.                                                                      |
+| `design/contrast.test.ts` | Parses `tokens.css` and fails the build on any contrast violation.                                 |
+| `design/motion.css`       | Every keyframe and the `--dur-*`/`--ease-*` tokens. The six motion words.                          |
+| `design/motion.ts`        | The same numbers for the two places that need them in JS.                                          |
 
 ## Conventions
 
@@ -136,11 +137,11 @@ failed end-to-end run uploads its Playwright report.
 
 Nothing in this repository depends on somebody remembering to run `pnpm check`.
 
-| | |
-|---|---|
-| `pnpm check` | lint + typecheck + test + build. What CI runs, minus the browser. |
-| `pnpm e2e` | the Playwright journeys, against a production build served by `vite preview`. |
-| `pnpm check:all` | both. |
+|                  |                                                                               |
+| ---------------- | ----------------------------------------------------------------------------- |
+| `pnpm check`     | lint + typecheck + test + build. What CI runs, minus the browser.             |
+| `pnpm e2e`       | the Playwright journeys, against a production build served by `vite preview`. |
+| `pnpm check:all` | both.                                                                         |
 
 ## Testing
 
@@ -171,7 +172,48 @@ revoked and honours kept, and re-logging afterwards.
 - **A new honour** → one entry in `ACHIEVEMENTS` in `domain/achievements.ts`. It is a pure predicate;
   nothing else changes, and the badge draws itself from the id.
 - **A new surface** → a route in `App.tsx`, an entry in `SURFACE` in `design/marks.ts`, a rail entry
-  in `shell/AppShell.tsx`, and a `short` label of eight characters or fewer for the vertical rail.
+  in `shell/AppShell.tsx`, and a `short` label of eight characters or fewer for compact navigation.
   Re-run `node scripts/subset-marks.mjs` if you added a kanji.
 - **A new colour** → you probably do not need one. If you do, it goes in all five camps in
   `tokens.css` and the contrast test will tell you immediately if it fails.
+
+## Cinematic presentation
+
+`src/cinema/environment.ts` owns intensity thresholds, route-space lookup and the five world material
+names/directions. `SceneWorld` reads the existing world selectors, settings and ceremony cue. It is an
+aria-hidden sibling of content, never a Canvas ancestor. One requestAnimationFrame phase writes CSS
+properties for environment and cloth, with no React updates per frame. It stops for hidden tabs,
+non-intersection, momentum below 0.12, STILL AIR, Dojo and Quartermaster. `SceneFocus` restores main
+focus after navigation while respecting form autofocus. The shell's route-keyed `scene-threshold` is
+pointer-transparent; `cinema.css` owns its 360ms variants and removes it under reduced motion.
+
+Extend the existing primitives: `GoalPresence` consumes `GoalView` for crest, form and progress;
+`CampaignIntel` consumes selector-derived fractions/pace gaps for its labelled plot and exact rows;
+`TimeStrata` consumes history `Period` values and exposes selected periods through semantic buttons.
+None writes data or owns another domain calculation. Styles and responsive composition live in
+`cinema.css`; colour/type authorities remain `src/design/`.
+
+Assets are versioned local WebP files in `public/assets/environments/`. `SceneWorld` selects valley or
+chamber, with a 640px source at viewport widths up to 640px and a 1536px source otherwise. The opening
+War Table plate is eager; other picture routes are lazy. Failed images hide without hiding controls.
+Ceremony uses the chamber in CSS. Keep generation prompts, dimensions and compression provenance in
+`PROVENANCE.md`; replace art with a new filename so the existing service-worker asset cache can update.
+There is no runtime image-generation service or remote media dependency.
+
+WebGL stays in the lazy `CampaignScene` chunk. Terrain is one memoized plane with 48×48 subdivisions;
+its shader fades alpha from 0.85 to 1.8 times the layout extent. Dispose custom geometry on unmount;
+React Three Fiber owns declarative materials. Ties reuse one buffer and explicitly dispose their
+geometry/material. DPR is capped at 1.75. Zero intensity and hidden tabs select demand rendering;
+STILL AIR also removes camera damping and focus travel. Labels stay at constant HTML size, and dense
+formations limit names to the heaviest 22 plus the relevant selection. `OpeningFrame` fits camera
+distance to the measured canvas aspect on resize; orbit distance is capped at ten times extent.
+Preserve the resolved Canvas box and immediate resize measurement described above.
+
+The ceremony owns its eight-beat siege timeline. Animated siege holds its last beat; STILL AIR's big
+ceremonies have no advance/close timer and use explicit controls. On phones, the shrine CTA is fixed
+and the siege content reserves 100px beneath its record. Keep focus trapping and Escape dismissal when
+changing staging. Sound remains gated by the existing setting.
+
+Plant reserves a UUID once. NewGoal accepts that ID, makeGoal preserves it, and repository creation
+uses Dexie add to reject collisions atomically. Existing records and schemas are unchanged. The ritual
+regression test covers identity continuity and collision safety.

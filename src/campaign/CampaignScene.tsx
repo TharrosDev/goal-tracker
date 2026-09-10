@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Canvas, useFrame, useThree, type ThreeElements } from '@react-three/fiber'
 import { OrbitControls, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import { Terrain } from './Terrain'
 import type { CampaignPlan, Pitched } from './layout'
 import { orbitAt } from './layout'
 import type { GoalState, WorldId } from '@/domain/types'
@@ -123,6 +124,10 @@ function Body({
   const colour = useMemo(() => tokenColour(STATE_TOKEN[view.state], '#d8b25e'), [view.state])
   const dye = useMemo(() => tokenColour(`--dye-${view.dye + 1}`, '#4a7fc1'), [view.dye])
   const accent = useMemo(() => tokenColour('--accent', '#d8b25e'), [])
+  const stone = useMemo(
+    () => tokenColour('--ground-raised', '#151b27').lerp(tokenColour('--ink'), 0.15),
+    [],
+  )
 
   const id = view.goal.id
   useEffect(() => {
@@ -176,6 +181,10 @@ function Body({
 
   return (
     <group ref={group} {...props}>
+      <mesh position={[0, -0.65, 0]}>
+        <cylinderGeometry args={[body.size * 0.75, body.size * 0.92, 1.3, 6]} />
+        <meshStandardMaterial color={stone} roughness={1} flatShading />
+      </mesh>
       {/* The pole and the cloth: the same object as on the war table, standing
           in three dimensions. Cloth height is progress, exactly as it is there.
           A SIEGE is built differently rather than coloured differently — a
@@ -189,6 +198,21 @@ function Body({
 
       {boss && (
         <>
+          {/* Four corner towers make a siege legible in silhouette. */}
+          {[-1, 1].flatMap((x) =>
+            [-1, 1].map((z) => (
+              <group key={x + ':' + z} position={[x * body.size * 0.65, 0, z * body.size * 0.65]}>
+                <mesh position={[0, body.size * 0.45, 0]}>
+                  <boxGeometry args={[body.size * 0.24, body.size * 0.9, body.size * 0.24]} />
+                  <meshStandardMaterial color={stone} roughness={0.9} />
+                </mesh>
+                <mesh position={[0, body.size * 0.98, 0]} rotation={[0, Math.PI / 4, 0]}>
+                  <coneGeometry args={[body.size * 0.23, body.size * 0.2, 4]} />
+                  <meshStandardMaterial color={colour} />
+                </mesh>
+              </group>
+            )),
+          )}
           {/* The keep: three courses, narrowing. */}
           {[0, 1, 2].map((i) => (
             <mesh key={i} position={[0, body.size * (0.1 + i * 0.16), 0]}>
@@ -199,7 +223,7 @@ function Body({
                   body.size * (0.95 - i * 0.2),
                 ]}
               />
-              <meshBasicMaterial color={colour} wireframe />
+              <meshStandardMaterial color={stone} roughness={0.85} />
             </mesh>
           ))}
         </>
@@ -208,13 +232,7 @@ function Body({
       {/* The cloth hangs from the head of the pole and reaches DOWN by progress,
           so a full standard is a full banner — the same reading as the field. */}
       {view.fraction > 0 && (
-        <mesh
-          position={[
-            body.size * 0.44,
-            head - (view.fraction * body.size * 2.1) / 2,
-            0,
-          ]}
-        >
+        <mesh position={[body.size * 0.44, head - (view.fraction * body.size * 2.1) / 2, 0]}>
           <planeGeometry args={[body.size * 0.82, view.fraction * body.size * 2.1]} />
           <meshBasicMaterial color={dye} side={THREE.DoubleSide} transparent opacity={0.9} />
         </mesh>
@@ -322,13 +340,14 @@ function Ties({
       positions.setXYZ(i * 2 + 1, to.x, to.y + 0.02, to.z)
 
       const touches = selectedId !== null && (link.from === selectedId || link.to === selectedId)
-      const colour = selectedId === null
-        ? link.hierarchy
-          ? palette.hierarchy
-          : palette.alliance
-        : touches
-          ? palette.lit
-          : palette.dim
+      const colour =
+        selectedId === null
+          ? link.hierarchy
+            ? palette.hierarchy
+            : palette.alliance
+          : touches
+            ? palette.lit
+            : palette.dim
 
       colours.setXYZ(i * 2, colour.r, colour.g, colour.b)
       colours.setXYZ(i * 2 + 1, colour.r, colour.g, colour.b)
@@ -339,34 +358,6 @@ function Ties({
 
   if (!count) return null
   return <lineSegments geometry={geometry} material={material} frustumCulled={false} />
-}
-
-/**
- * The ground the camp is pitched on. A grid is allowed HERE and nowhere else in
- * this product, because this surface actually is a map and the grid actually is
- * its scale — one square is one unit of distance from the command tent. It is
- * drawn at the dimmest token in the system so it stays underneath the camp
- * rather than competing with it.
- */
-function Ground({ extent }: { extent: number }) {
-  const colour = useMemo(() => tokenColour('--rule-hair', '#1a1a1a'), [])
-  // gridHelper's first argument is the grid's full WIDTH, not its radius, so
-  // this has to be twice the extent or the camp stands outside its own ground.
-  const size = Math.ceil(extent * 2.4)
-  const grid = useMemo(
-    () => new THREE.GridHelper(size, Math.max(4, Math.round(size / 2)), colour, colour),
-    [size, colour],
-  )
-  useEffect(
-    () => () => {
-      grid.geometry.dispose()
-      const material = grid.material
-      if (Array.isArray(material)) material.forEach((m) => m.dispose())
-      else material.dispose()
-    },
-    [grid],
-  )
-  return <primitive object={grid} position={[0, -0.01, 0]} />
 }
 
 /**
@@ -387,7 +378,10 @@ function Focus({
   extent: number
   animate: boolean
 }) {
-  const controls = useThree((s) => s.controls) as { target: THREE.Vector3; update: () => void } | null
+  const controls = useThree((s) => s.controls) as {
+    target: THREE.Vector3
+    update: () => void
+  } | null
   const want = useRef(new THREE.Vector3(0, extent * 0.22, 0))
 
   useEffect(() => {
@@ -409,6 +403,18 @@ function Focus({
     controls.update()
   })
 
+  return null
+}
+
+/** Fit the opening formation to the actual canvas, including portrait tablets. */
+function OpeningFrame({ extent }: { extent: number }) {
+  const { camera, size, invalidate } = useThree()
+  useEffect(() => {
+    const fit = Math.max(1, size.height / size.width)
+    camera.position.set(extent * 1.15 * fit, extent * 1.55 * fit, extent * 2.65 * fit)
+    camera.lookAt(0, extent * 0.22, 0)
+    invalidate()
+  }, [camera, size.width, size.height, extent, invalidate])
   return null
 }
 
@@ -461,7 +467,15 @@ export default function CampaignScene({
     return new Set([...heaviest, ...related, ...(selectedId ? [selectedId] : [])])
   }, [plan.bodies, related, selectedId])
 
-  const still = intensity <= 0
+  const visible = useSyncExternalStore(
+    (changed) => {
+      document.addEventListener('visibilitychange', changed)
+      return () => document.removeEventListener('visibilitychange', changed)
+    },
+    () => !document.hidden,
+  )
+  const still = intensity <= 0 || !visible
+  const fogColour = useMemo(() => tokenColour('--ground', '#0c1018'), [])
 
   return (
     <Canvas
@@ -471,7 +485,7 @@ export default function CampaignScene({
        * crops the labels off the top — which is the half of the scene carrying
        * the information.
        */
-      camera={{ position: [0, plan.extent * 1.3, plan.extent * 1.85], fov: 38 }}
+      camera={{ position: [0, plan.extent * 1.55, plan.extent * 2.65], fov: 38 }}
       // A phone's pixel ratio is where this scene gets expensive, and nothing
       // here is fine enough detail to need it: capped at 1.75.
       dpr={[1, 1.75]}
@@ -496,8 +510,9 @@ export default function CampaignScene({
       {/* `world` is not read here; it is in the key so every colour memo in the
           subtree is rebuilt when the camp changes. Reading a CSS custom property
           is not something React can see, so the remount is the subscription. */}
+      <fog attach="fog" args={[fogColour, plan.extent * 5, plan.extent * 10]} />
       <group key={world}>
-        <Ground extent={plan.extent} />
+        <Terrain extent={plan.extent} />
         {plan.bodies.map((body) => (
           <Body
             key={body.view.goal.id}
@@ -507,7 +522,11 @@ export default function CampaignScene({
             related={related.has(body.view.goal.id)}
             intensity={intensity}
             registry={registry}
-            showLabel={named === null || named.has(body.view.goal.id)}
+            showLabel={
+              selectedId
+                ? selectedId === body.view.goal.id || related.has(body.view.goal.id)
+                : named === null || named.has(body.view.goal.id)
+            }
             onSelect={() => onSelect(body.view.goal.id)}
             onOpen={() => onOpen(body.view.goal.id)}
           />
@@ -517,6 +536,7 @@ export default function CampaignScene({
         <Ties plan={plan} registry={registry} selectedId={selectedId} />
       </group>
 
+      <OpeningFrame extent={plan.extent} />
       <Focus
         target={selectedId ? (byId.get(selectedId) ?? null) : null}
         extent={plan.extent}
@@ -534,7 +554,7 @@ export default function CampaignScene({
         target={[0, plan.extent * 0.22, 0]}
         enablePan
         minDistance={3}
-        maxDistance={plan.extent * 3}
+        maxDistance={plan.extent * 10}
         maxPolarAngle={Math.PI * 0.49}
         enableDamping={!still}
         dampingFactor={0.08}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { useWorld } from '@/state/world'
 import { useWorldView } from '@/state/useWorldView'
 import { Mon } from '@/viz/Mon'
@@ -20,13 +21,13 @@ import './ceremony.css'
  * taken     the standard resolves to gold and is sealed. ~2.4s.
  * siege     eight beats, about seven seconds, and deliberately far too much.
  *
- * Everything here is skippable with any key, and SKIPPING IS NOT A LESSER
+ * Large ceremonies are skippable with Escape or their close control, and SKIPPING IS NOT A LESSER
  * OUTCOME: the merit is already awarded and the record already written before a
  * single frame is drawn. The ceremony is a reading of what happened, not the
  * thing that makes it happen.
  *
  * STILL AIR gets its own version rather than a stripped one: the eight beats
- * become eight stills, advanced on their own or by Space, so it reads as a
+ * become eight stills, advanced with the Next button, so it reads as a
  * printed record of the victory instead of a film of it.
  */
 export function Ceremony() {
@@ -38,6 +39,7 @@ export function Ceremony() {
 }
 
 function Sealing() {
+  const navigate = useNavigate()
   const cue = useWorld((s) => s.ceremony)!
   const clear = useWorld((s) => s.clearCeremony)
   const drainUnlocks = useWorld((s) => s.drainUnlocks)
@@ -58,7 +60,7 @@ function Sealing() {
   // having happened.
   const soundOn = useWorld((s) => s.settings.sound)
   useEffect(() => {
-    sound(honours.length ? 'honour' : cue.tier, soundOn)
+    sound(cue.tier === 'siege' ? 'siege' : honours.length ? 'honour' : cue.tier, soundOn)
     // Deliberately mount-only: a ceremony is one event, so it makes one sound.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -81,7 +83,7 @@ function Sealing() {
     const step = cue.tier === 'siege' ? 760 : cue.tier === 'taken' ? 700 : 900
     const handles = timers.current
     for (let i = 1; i < beats; i += 1) handles.push(setTimeout(() => setBeat(i), step * i))
-    handles.push(setTimeout(() => clear(), step * beats + 400))
+    if (cue.tier !== 'siege') handles.push(setTimeout(() => clear(), step * beats + 400))
     return () => {
       handles.forEach(clearTimeout)
       handles.length = 0
@@ -133,7 +135,12 @@ function Sealing() {
   const held = goal ? days(goal.startDate, goal.completedAt ? dayOf(goal.completedAt) : today()) : 0
   const early =
     goal?.deadline && goal.completedAt ? days(dayOf(goal.completedAt), goal.deadline) : null
-  const story = world.recent.filter((e) => e.goalId === cue.goalId).slice(0, 8)
+  const story = useWorld
+    .getState()
+    .events.filter((e) => e.goalId === cue.goalId)
+    .sort((a, b) => a.at.localeCompare(b.at))
+    .filter((e) => e.type !== 'progress')
+    .slice(-8)
 
   return (
     <div
@@ -142,7 +149,9 @@ function Sealing() {
       role="dialog"
       aria-modal="true"
       aria-label={`${goal?.title ?? 'A standard'} taken`}
-      onPointerDown={clear}
+      onPointerDown={(e) => {
+        if (e.target === e.currentTarget) clear()
+      }}
       onKeyDown={(e) => {
         if (e.key !== ' ' && e.key !== 'Enter') return
         // Let the button be a button: only the surrounding dialog advances.
@@ -151,6 +160,20 @@ function Sealing() {
         advance()
       }}
     >
+      <p className="fall__chapter">
+        {
+          [
+            cue.tier === 'taken' ? 'THE STANDARD IS TAKEN' : 'THE CAMP HOLDS',
+            cue.tier === 'taken' ? 'THE SEAL' : 'THE LINE IS MET',
+            cue.tier === 'taken' ? 'KEPT IN THE SHRINE' : 'THE KEEP',
+            'THE BREACH',
+            'THE STANDARD',
+            'THE RECORD',
+            'THE SEAL',
+            'KEPT IN THE SHRINE',
+          ][beat]
+        }
+      </p>
       <div className="fall__inner">
         {cue.tier === 'siege' && <Castle beat={beat} reduced={reduced} />}
 
@@ -220,6 +243,18 @@ function Sealing() {
           </ul>
         )}
 
+        {beat === beats - 1 && (
+          <button
+            type="button"
+            className="fall__enshrine"
+            onClick={() => {
+              clear()
+              navigate('/shrine')
+            }}
+          >
+            ENTER THE SHRINE →
+          </button>
+        )}
         <button
           ref={out}
           type="button"

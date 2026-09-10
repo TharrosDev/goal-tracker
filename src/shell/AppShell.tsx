@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router'
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router'
 import { SURFACE, type SurfaceKey } from '@/design/marks'
 import { useApplyWorld, useNarrow } from './prefs'
 import { useHotkeys, type Binding } from './hotkeys'
@@ -10,6 +10,8 @@ import { Undo } from './Undo'
 import { Renew } from './Renew'
 import { Live } from './Live'
 import './shell.css'
+import { SceneWorld, SceneFocus } from '@/cinema/SceneWorld'
+import { spaceFor } from '@/cinema/environment'
 
 /**
  * THE CAMP. Rail on desktop, bottom navigation on a phone.
@@ -40,6 +42,8 @@ const MOBILE = ['/', '/campaign', '/plant', '/dojo', '/chronicle'] as const
 
 export function AppShell() {
   useApplyWorld()
+  const location = useLocation()
+  const space = spaceFor(location.pathname)
   const narrow = useNarrow()
   const navigate = useNavigate()
   const [overlay, setOverlay] = useState<'none' | 'palette' | 'dispatch'>('none')
@@ -61,14 +65,24 @@ export function AppShell() {
       { key: 'q', label: 'Log a dispatch', run: () => setOverlay('dispatch') },
       { key: '/', label: 'Order book', run: () => setOverlay('palette') },
       { key: 'k', meta: true, label: 'Order book', run: () => setOverlay('palette') },
-      { key: 'escape', label: 'Close', run: close },
+      {
+        key: 'escape',
+        label: 'Close',
+        run: () => {
+          if (space === 'dojo') navigate('/')
+          else close()
+        },
+      },
     ],
-    [navigate, close],
+    [navigate, close, space],
   )
   useHotkeys(bindings)
 
   return (
-    <div className="camp">
+    <div className="camp" data-space={space}>
+      <SceneWorld />
+      <div key={location.key} className="scene-threshold" data-space={space} aria-hidden="true" />
+      <SceneFocus />
       <a className="skip" href="#field">
         Skip to the field
       </a>
@@ -112,7 +126,7 @@ export function AppShell() {
         </nav>
       )}
 
-      <main className="camp__main" id="field">
+      <main className="camp__main" id="field" tabIndex={-1}>
         <Outlet />
       </main>
 
@@ -135,7 +149,20 @@ export function AppShell() {
                 <span className="tabs__mark" aria-hidden="true">
                   {plant ? '＋' : key ? SURFACE[key].mark : ''}
                 </span>
-                <span className="tabs__name">{plant ? 'PLANT' : key ? SURFACE[key].name : ''}</span>
+                <span className="tabs__name">
+                  {plant
+                    ? 'PLANT'
+                    : key
+                      ? ((
+                          {
+                            warTable: 'WAR TABLE',
+                            campaign: 'CAMPAIGN',
+                            dojo: 'DOJO',
+                            chronicle: 'RECORD',
+                          } as Record<string, string>
+                        )[key] ?? SURFACE[key].name)
+                      : ''}
+                </span>
               </NavLink>
             )
           })}

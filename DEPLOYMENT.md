@@ -21,24 +21,28 @@ The project was a single static `index.html` before the rebuild, so **the framew
 change**. `vercel.json` pins it:
 
 ```json
-{ "framework": "vite", "buildCommand": "pnpm build", "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+{
+  "framework": "vite",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
 ```
 
 The rewrite matters: the app uses real routes (`/campaign`, `/standard/:id`, …) and a direct hit on
 one of them 404s without it.
 
 Pushing to `main` deploys. There is nothing to configure beyond the above — no environment
-variables, no secrets, no database, no integrations. The app makes **no network requests at runtime**.
+variables, no secrets, no database, no integrations. The app has no external service requests at runtime; scripts, fonts and scenery load from its own origin.
 
 ## Bundle
 
-| Chunk | Size | Gzip | When it loads |
-|---|---|---|---|
-| `index.js` | ~598 kB | ~184 kB | always |
-| `index.css` | ~58 kB | ~13 kB | always |
-| `CampaignScene.js` | ~907 kB | ~242 kB | **only when the camp is opened** |
-| fonts | latin only | — | as glyphs are used |
+| Chunk              | Size       | Gzip    | When it loads                    |
+| ------------------ | ---------- | ------- | -------------------------------- |
+| `index.js`         | ~598 kB    | ~184 kB | always                           |
+| `index.css`        | ~58 kB     | ~13 kB  | always                           |
+| `CampaignScene.js` | ~907 kB    | ~242 kB | **only when the camp is opened** |
+| fonts              | latin only | —       | as glyphs are used               |
 
 **There is no `manualChunks` block in `vite.config.ts`, and there must not be one.** It looked like
 it was splitting three.js out; it was doing the opposite. Rolldown forms the manual group first and
@@ -62,8 +66,7 @@ Noto Serif JP holding exactly the 27 kanji the product uses. Regenerate that sub
 
 ## Offline and updates
 
-The app installs, and once it has been opened once it works with no network at all. That is the whole
-point: the record was never on a server, so losing the network should change nothing.
+The app installs and caches visited resources for offline use. Records stay on the device. An unvisited lazy route or uncached asset may still need a connection.
 
 `public/sw.js` is deliberately small enough to read in one sitting. Two strategies:
 
@@ -109,3 +112,11 @@ because those names contain a content hash and cannot go stale by definition.
 - **Caching `sw.js`.** Everybody stays on the build they first met, forever.
 - **Clearing site data.** There is no server copy. This is the product's central trade, and it is why
   export is the first thing on the quartermaster.
+
+## Cinematic assets and budget
+
+The September baseline was index JS 317.47 kB (101.15 gzip), shared marks chunk 225.99 kB (69.07 gzip), and lazy CampaignScene 909.14 kB (242.72 gzip). The cinematic pass keeps the same lazy boundaries; see the current build output for exact hashes/sizes.
+
+Four local WebP derivatives total about 225 KiB. Only the applicable scene/source loads: valley 70 KiB desktop / 17 KiB phone; chamber 114 KiB desktop / 24 KiB phone. No preload is added. /assets/environments/ is covered by the existing asset cache; offline browser tests warm a route, disconnect, revisit and verify both the controls and decoded artwork. An unvisited asset can be absent offline and the decorative fallback remains functional. Do not claim unvisited lazy routes are pre-cached.
+
+Version artwork filenames for replacement. Generation prompts and optimization parameters live beside the assets in PROVENANCE.md. All requests stay on the app origin; no generation service or external asset host is contacted by the shipped application.

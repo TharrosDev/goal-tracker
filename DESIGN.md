@@ -101,7 +101,7 @@ by a mark alone. See §14.1.
 | settings / data       | **THE QUARTERMASTER** | 具   | where supply, backup and repair live                      |
 | completion ceremony   | **THE SEALING**       | 印   |                                                           |
 | the five worlds       | **CAMPS**             | 営   |                                                           |
-| reduced motion        | **STILL AIR**         | —    | the wind drops; nothing else changes                      |
+| reduced motion        | **STILL AIR**         | —    | authored still compositions; facts remain available                      |
 
 Route paths stay plain English (`/campaign`, `/standard/:id`, `/dojo`, `/shrine`, `/chronicle`,
 `/honours`, `/survey`, `/quartermaster`) so the URL bar is never a puzzle.
@@ -345,7 +345,7 @@ The field is one element filling the viewport below the rail.
   Height is `fraction` of the usable space. Full height means finished.
 - **THE LINE.** One 1px `--rule-strong` diagonal from (left edge, ground) to (right edge, top).
 
-**Why X is elapsed span and not days-until-the-hour.** Because it makes the line *exact*. At
+**Why X is elapsed span and not days-until-the-hour.** Because it makes the line _exact_. At
 horizontal position x the expected progress is exactly x, so a standard sitting on the line is
 precisely on pace, one above it is ahead, and the vertical gap below it **is `paceGap`, to the pixel,
 for every goal regardless of span**. Plotting absolute days against a shared horizon reads well but
@@ -516,7 +516,7 @@ loop for the whole product; a per-standard animation is a bug.
 
 ## 12. CEREMONY
 
-Four tiers. All are skippable with `Escape` or any key, and **skipping lands on the final state**, not
+Four tiers. Large ceremonies close with `Escape` or their visible close control; small tiers do not block input. **Skipping preserves the final state**, not
 on a dismissal: the merit is awarded and the record written either way.
 
 1. **A dispatch logged** — the cloth SETTLEs, the figure counts, a 40ms 2px lift on the standard. Under
@@ -545,7 +545,7 @@ on a dismissal: the merit is awarded and the record written either way.
       the standard's permanent place in the shrine.
 
    **STILL AIR** gets a distinct, authored version: the eight beats become eight _stills_, advanced by
-   `Space` or automatically at 1.2s each, with no motion between them. It is a printed record of the
+   `NEXT`, `Space` or `Enter`, with no automatic advance or motion between them. It is a printed record of the
    victory rather than a film of it, and it is not a lesser experience.
 
 ---
@@ -619,3 +619,36 @@ Checkable against a diff.
     the distance.
 12. **Nothing invented.** Every figure on screen traces to a real value in `src/state/selectors.ts`.
     No placeholder data, no decorative chart, no metric that is not measured.
+
+## Cinematic expansion — September 2026
+
+The continuous field occupies an authored valley. Scenery carries atmosphere; live instruments carry
+facts. The chamber serves Dojo, Shrine and Honours. Generated plates contain no text or metrics;
+`public/assets/environments/PROVENANCE.md` owns their art bible, prompts and export details.
+
+QUIET below 0.12 momentum stops environmental air. ACTIVE breathes; RISING requires trend above 0.05;
+HIGH begins at 0.65. SIEGE is a ceremony override. Falling momentum quiets the scene without a penalty
+treatment. Lacquer is dawn, washi inverted fibre, sumi ink, kuro monochrome stone and jigoku warm ash.
+Semantic tokens and shared geometry remain authoritative across all five worlds.
+
+Thresholds open vertically in 360ms, split for Dojo and reveal laterally for Chronicle. They are
+pointer-transparent and do not delay navigation. STILL AIR removes the threshold and environmental
+travel while preserving the composition. Dojo removes rail/tabs, retains an explicit exit and records
+elapsed minutes as thirty floor marks; the timer continues beyond thirty minutes.
+
+Standard ground composes the existing crest, kind, difficulty and progress. Rhythmic goals have an
+enclosure, clock goals a narrow horizon, bosses stepped foundations. Shrine monuments vary in height
+by difficulty; bosses become landmarks. Inspection opens the factual record. Plant reserves its ID
+once so the preview crest survives planting.
+
+Campaign terrain fades radially into the valley, avoiding a visible rectangular slab. Opening framing
+fits the actual canvas aspect, including portrait tablets. Selection foregrounds the chosen formation;
+the Roll remains the complete semantic peer. CampaignIntel plots actual versus expected progress with
+axes and exact text rows. Chronicle TimeStrata gives each period 76px, scales height by merit and
+keeps zero-merit time on the baseline; selectable date/value controls carry the same record.
+
+The siege retains eight beats, chapter staging and environmental depth. Its final tableau stays until
+dismissed or ENTER THE SHRINE. Escape closes; STILL AIR advances by NEXT, Space or Enter without a
+timer. Sound remains optional and sparse. On phones the final shrine action stays fixed beside the
+exit, with 100px of content clearance for a scrolling honour record. Responsive image sources, compact
+titles and a vertical oath preview support the mobile scope recorded in PRODUCT.md.

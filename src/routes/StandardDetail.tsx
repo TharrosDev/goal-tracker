@@ -12,6 +12,7 @@ import { fmtDate, today } from '@/domain/date'
 import { relativeDays, value, valueParts } from '@/domain/format'
 import { EVENT_COPY } from '@/domain/copy'
 import './standard-detail.css'
+import { GoalPresence } from '@/cinema/GoalPresence'
 
 /**
  * A STANDARD's own ground.
@@ -27,6 +28,8 @@ export function StandardDetail() {
   const setMilestoneDone = useWorld((s) => s.setMilestoneDone)
   const patchGoal = useWorld((s) => s.patchGoal)
   const [dispatching, setDispatching] = useState(false)
+  const events = useWorld((s) => s.events)
+  const achievements = useWorld((s) => s.achievements)
 
   const view = id ? world.byId.get(id) : undefined
   if (!view) {
@@ -51,10 +54,16 @@ export function StandardDetail() {
       v.goal.id !== goal.id && (v.goal.parentId === goal.id || goal.linkedIds.includes(v.goal.id)),
   )
 
-  const story = world.recent.filter((e) => e.goalId === goal.id).slice(0, 12)
+  const ownEvents = events
+    .filter((e) => e.goalId === goal.id)
+    .sort((a, b) => b.at.localeCompare(a.at))
+  const story = ownEvents.slice(0, 12)
+  const causes = new Set(ownEvents.map((e) => e.cause).filter(Boolean))
+  const ownHonours = achievements.filter((a) => a.cause && causes.has(a.cause))
 
   return (
-    <div className="detail enter">
+    <div className="detail">
+      <GoalPresence view={view} />
       <header className="detail__head">
         <Mon
           sigil={view.sigil}
@@ -72,6 +81,19 @@ export function StandardDetail() {
           <h1 className="display detail__title">{goal.title}</h1>
         </div>
       </header>
+
+      <div className="detail__actions">
+        <button type="button" className="detail__send" onClick={() => setDispatching(true)}>
+          SEND A DISPATCH
+        </button>
+        <button
+          type="button"
+          className="detail__strike"
+          onClick={() => void patchGoal(goal.id, { paused: !goal.paused })}
+        >
+          {goal.paused ? 'RAISE AGAIN' : 'STRIKE THE CAMP'}
+        </button>
+      </div>
 
       <div className="detail__standing">
         <div className="detail__figure">
@@ -115,6 +137,19 @@ export function StandardDetail() {
       </div>
 
       <Trajectory view={view} at={at} />
+      {goal.completedAt && (
+        <section className="memorial-record">
+          <h2 className="h2">KEPT IN THE SHRINE</h2>
+          <p className="lede">
+            Taken {fmtDate(goal.completedAt.slice(0, 10))}.{' '}
+            {ownEvents.reduce((sum, e) => sum + e.xp, 0)} merit recorded. {view.entries.length}{' '}
+            dispatches. {milestones.filter((m) => m.done).length} gates passed.
+          </p>
+          {ownHonours.length > 0 && (
+            <p className="lede">{ownHonours.length} honours earned in this campaign.</p>
+          )}
+        </section>
+      )}
 
       {goal.why && (
         <section className="detail__why">
@@ -180,19 +215,6 @@ export function StandardDetail() {
           </ul>
         </section>
       )}
-
-      <div className="detail__actions">
-        <button type="button" className="detail__send" onClick={() => setDispatching(true)}>
-          SEND A DISPATCH
-        </button>
-        <button
-          type="button"
-          className="detail__strike"
-          onClick={() => void patchGoal(goal.id, { paused: !goal.paused })}
-        >
-          {goal.paused ? 'RAISE AGAIN' : 'STRIKE THE CAMP'}
-        </button>
-      </div>
 
       <Govern view={view} />
 

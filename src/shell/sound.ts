@@ -70,6 +70,10 @@ function play(voices: Voice[]): void {
     osc.connect(amp).connect(audio.destination)
     osc.start(start)
     osc.stop(start + v.duration + 0.02)
+    osc.onended = () => {
+      osc.disconnect()
+      amp.disconnect()
+    }
   }
 }
 
@@ -96,9 +100,9 @@ export const SOUNDS = {
   /** A siege falling. The low note DESIGN.md 12 specifies, and a rise over it. */
   siege: () =>
     play([
-      { freq: 78, duration: 2.4, gain: 0.16 },
-      { freq: 156, duration: 1.8, gain: 0.08, delay: 0.05 },
-      { freq: 392, to: 784, duration: 1.2, gain: 0.07, type: 'triangle', delay: 0.5 },
+      { freq: 78, duration: 2.4, gain: 0.16, delay: 2.28 },
+      { freq: 156, duration: 1.8, gain: 0.08, delay: 2.33 },
+      { freq: 392, to: 784, duration: 1.2, gain: 0.07, type: 'triangle', delay: 3.8 },
     ]),
 
   /** An honour, or a rank. Bright and brief. */

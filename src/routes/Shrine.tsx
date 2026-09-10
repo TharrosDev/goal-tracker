@@ -68,7 +68,7 @@ export function Shrine() {
           return (
             <li
               key={v.goal.id}
-              className="monument"
+              className={`monument${v.goal.boss ? ' monument--boss' : v.goal.difficulty >= 4 ? ' monument--major' : ''}`}
               style={{ '--i': staggerIndex(i) } as React.CSSProperties}
             >
               <button type="button" onClick={() => navigate(`/standard/${v.goal.id}`)}>
@@ -86,6 +86,10 @@ export function Shrine() {
                     ? value(v.goal, v.goal.current)
                     : `${v.milestones.length || ''} ${v.milestones.length ? 'gates' : 'taken'}`}
                 </span>
+                <span className="label">
+                  {span} DAYS HELD · {merit} MERIT
+                </span>
+                <span className="monument__inspect">ENTER ITS HISTORY →</span>
                 <dl className="monument__facts">
                   <div>
                     <dt className="label">PLANTED</dt>
